@@ -131,6 +131,10 @@ public class DSyncBaseHandler {
 		public final void sync() {
 			onChanged();
 		}
+
+		public long get_dSync_id() {
+			return _dSync_id;
+		}
 	}
 
 }

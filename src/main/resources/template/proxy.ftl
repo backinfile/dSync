@@ -77,12 +77,16 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#list struct.fields as field>
 <#if field.array>
 <#if field.baseType>
-			jsonObject.put(K.${field.name}, JSON.toJSONString(${field.name}));
+			jsonObject.put(K.${field.name}, JSONObject.toJSONString(${field.name}));
 <#else>
 			jsonObject.put(K.${field.name}, toJSONString(${field.name}));
 </#if>
 <#else>
+<#if field.baseType>
 			jsonObject.put(K.${field.name}, ${field.name});
+<#else>
+			jsonObject.put(K.${field.name}, ${field.name}.get_dSync_id());
+</#if>
 </#if>
 </#list>
 		}
@@ -92,7 +96,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#list struct.fields as field>
 <#if field.array>
 <#if field.baseType>
-			${field.name} = JSON.parseArray(jsonObject.getString(K.${field.name}), ${field.largeTypeName}.class);
+			${field.name} = JSONObject.parseArray(jsonObject.getString(K.${field.name}), ${field.largeTypeName}.class);
 <#else>
 			${field.name} = fromJSONString(jsonObject.getString(K.${field.name}));
 </#if>

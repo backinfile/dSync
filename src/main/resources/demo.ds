@@ -8,6 +8,7 @@ struct Human {
 	long id;
 	string name;
 	CardPile handPile; // 手牌
+	String[] cards;
 }
 
 struct CardPile {
