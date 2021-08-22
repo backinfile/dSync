@@ -24,7 +24,7 @@ public abstract class GenBase {
 	private String templateFileName = "";
 	private String targetPackagePath = "";
 	private String fileName = "";
-	private static final String TemplateFileDir = "/templates";
+	private static final String TemplateFileDir = "/template";
 	private static final String projectPath = "src\\main\\java";
 
 	public boolean canGen = true;

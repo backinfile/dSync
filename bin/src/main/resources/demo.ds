@@ -1,0 +1,21 @@
+path {
+	player {
+		Player player;
+		Stage stage;
+	}
+	chat { // 聊天信息
+		long id;
+	}
+}
+struct Stage{
+	long id;
+	StageObject[] object;
+}
+struct Player {
+	long id;
+	string name;
+}
+struct StageObject{
+	long id;
+	string name;
+}

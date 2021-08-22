@@ -1,21 +1,19 @@
-path {
-	player {
-		Player player;
-		Stage stage;
-	}
-	chat { // 聊天信息
-		long id;
-	}
+
+root struct Board {
+	Human[] humans;
 }
-struct Stage{
-	long id;
-	StageObject[] object;
-}
-struct Player {
+
+// 玩家信息
+struct Human {
 	long id;
 	string name;
+	CardPile handPile; // 手牌
 }
-struct StageObject{
+
+struct CardPile {
+	Card[] cards;
+}
+
+struct Card {
 	long id;
-	string name;
 }

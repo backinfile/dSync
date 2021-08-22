@@ -1,69 +1,111 @@
-package com.backinfile.gen.proxy;
+package ${packagePath};
 
-import com.backinfile.core.CallPoint;
-import com.backinfile.core.Distr;
-import com.backinfile.core.Port;
-import com.backinfile.core.ProxyBase;
-import com.backinfile.core.function.Action0;
-import com.backinfile.core.function.Action1;
-import com.backinfile.core.function.Action2;
-import com.backinfile.core.function.Action3;
-import com.backinfile.core.function.Action4;
-import com.backinfile.core.function.Action5;
-import com.backinfile.core.function.Action6;
-import com.backinfile.core.function.Action7;
+import java.util.ArrayList;
+import java.util.List;
 
-<#list imports as import>
-import ${import};
-</#list>
+import com.alibaba.fastjson.JSONObject;
+import com.backinfile.dSync.model.DSyncBaseHandler;
+import com.backinfile.dSync.model.DSyncException;
+import com.backinfile.dSync.model.Mode;
 
-public class ${className} extends ProxyBase {
-	
-<#if standalone>
-	public static final String PortId = "${oriClassFullName}";
-</#if>
-	
-	private CallPoint targetCallPoint;
+public class ${handlerClassName} extends DSyncBaseHandler {
+	private Board root;
 
-	private ${className}(CallPoint targetCallPoint) {
-		this.targetCallPoint = targetCallPoint;
-		this.m_port = Port.getCurrentPort();
+	public ${handlerClassName}(Mode mode) {
+		super(mode);
+		root = new ${rootClassName}();
+		root.init();
+		put(root);
+		root.sync();
 	}
 
-<#if standalone>
-	public static ${className} newInstance() {
-		return new ${className}(new CallPoint(Distr.getDefaultNodeId(), PortId, 0L));
+	public Board getRoot() {
+		return root;
 	}
-<#else>
-	public static ${className} newInstance(String portId, long serviceId) {
-		return new ${className}(new CallPoint(Distr.getDefaultNodeId(), portId, serviceId));
-	}
-	
-	public static ${className} newInstance(CallPoint callPoint) {
-		return new ${className}(callPoint);
-	}
-</#if>
 
-<#list methods as method>
-<#if method.isPara>
-    @SuppressWarnings({"rawtypes"}) 
-</#if>
-    public void ${method.name}(<#list method.args as arg>${arg.typeName} ${arg.name}${arg.dot}</#list>) {
-		m_port.sendNewCall(targetCallPoint, ${method.methodKey}, new Object[] {<#list method.args as arg>${arg.name}${arg.dot}</#list>});
-    }
-    
-</#list>
-    @SuppressWarnings({"rawtypes"}) 
-	public Object getMethod(Object service, int methodKey) {
-		${oriClassName} serv = (${oriClassName})service;
-		switch (methodKey) {
-<#list methods as method>
-		case ${method.methodKey}:
-			return (Action${method.argsCount}<#if method.argsCount gt 0><<#list method.args as arg>${arg.wrapName}${arg.dot}</#list>></#if>) serv::${method.name};
+	@Override
+	protected DSyncBase newDSyncInstance(String typeName) {
+		switch (typeName) {
+<#list structs as struct>
+		case ${struct.className}.TypeName:
+			return new ${struct.className}();
 </#list>
 		default:
-			break;
+			return null;
 		}
-		return null;
 	}
+
+<#list structs as struct>
+	public static class ${struct.className} extends DSyncBase {
+		public static final String TypeName = "${struct.className}";
+		
+<#list struct.fields as field>
+		private ${field.typeName} ${field.name};
+</#list>
+
+		public static class K {
+<#list struct.fields as field>
+			public static final String ${field.name} = "${field.name}";
+</#list>
+		}
+
+		private ${struct.className}() {
+		}
+
+		public static ${struct.className} newInstance(${handlerClassName} _handler) {
+			if (_handler.mode == Mode.Client) {
+				throw new DSyncException("Client模式下，不能创建DSync数据对象");
+			}
+			${struct.className} _struct = new ${struct.className}();
+			_struct.init();
+			if (_handler.mode == Mode.Server) {
+				_handler.put(_struct);
+			}
+			return _struct;
+		}
+
+		@Override
+		protected void init() {
+<#list struct.fields as field>
+			${field.name} = ${field.defaultValue};
+</#list>
+		}
+
+		@Override
+		protected void getRecord(JSONObject jsonObject) {
+			jsonObject.put(DSyncBase.K.TypeName, TypeName);
+<#list struct.fields as field>
+<#if field.array>
+<#if field.baseType>
+			jsonObject.put(K.${field.name}, JSON.toJSONString(${field.name}));
+<#else>
+			jsonObject.put(K.${field.name}, toJSONString(${field.name}));
+</#if>
+<#else>
+			jsonObject.put(K.${field.name}, ${field.name});
+</#if>
+</#list>
+		}
+
+		@Override
+		protected void applyRecord(JSONObject jsonObject) {
+<#list struct.fields as field>
+<#if field.array>
+<#if field.baseType>
+			${field.name} = JSON.parseArray(jsonObject.getString(K.${field.name}), ${field.largeTypeName}.class);
+<#else>
+			${field.name} = fromJSONString(jsonObject.getString(K.${field.name}));
+</#if>
+<#else>	
+<#if field.baseType>
+			${field.name} = jsonObject.get${field.longTypeName}(K.${field.name});
+<#else>
+			${field.name} = (${field.typeName}) handler.get(jsonObject.getLongValue(K.${field.name}));
+</#if>
+</#if>
+</#list>
+		}
+	}
+</#list>
 }
+

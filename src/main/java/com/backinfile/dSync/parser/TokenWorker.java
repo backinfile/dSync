@@ -5,20 +5,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import com.backinfile.dSync.Log;
 import com.backinfile.dSync.parser.Token.TokenType;
 
 public class TokenWorker {
 	private int lineno = 0;
 	private int lineIndex = 0;
-	private String[] content;
+	private List<String> content;
 	private List<Token> tokenCollection = new ArrayList<>();
 	private List<Token> tokenCollectionCache = new ArrayList<>();
 	private Result result = new Result();
 
-	private TokenWorker(String[] content) {
+	private TokenWorker(List<String> content) {
 		this.content = content;
 	}
 
@@ -29,21 +29,27 @@ public class TokenWorker {
 		public List<Token> tokens = new ArrayList<>();
 	}
 
-	public static Result getTokens(String[] content) {
-		TokenWorker tokenWorker = new TokenWorker(content);
+	public static Result getTokens(List<String> allLine) {
+		TokenWorker tokenWorker = new TokenWorker(allLine);
 		tokenWorker.parse();
 		return tokenWorker.result;
 	}
 
+	public static Result getTokens(String content) {
+		String[] split = content.split("\n");
+		return getTokens(Arrays.asList(split));
+	}
+
 	private void parse() {
 		lineno = 0;
-		while (lineno < content.length) {
+		while (lineno < content.size()) {
 			lineno++;
 			parseLine();
 			if (result.hasError) {
 				return;
 			}
 		}
+		result.tokens.addAll(tokenCollection);
 	}
 
 	private static enum ParseMode {
@@ -53,7 +59,7 @@ public class TokenWorker {
 	private void parseLine() {
 		clearTokenCache();
 		lineIndex = -1;
-		String str = content[lineno - 1];
+		String str = content.get(lineno - 1);
 		ParseMode mode = ParseMode.None;
 		int modeStartIndex = -1;
 		while (lineIndex < str.length() - 1) {
@@ -125,9 +131,6 @@ public class TokenWorker {
 
 	private void flushToken() {
 		tokenCollection.addAll(tokenCollectionCache);
-		for (var token : tokenCollectionCache) {
-			Log.Game.info("add token {} {}", token.type.toString(), token.value);
-		}
 	}
 
 	private void clearTokenCache() {
@@ -138,7 +141,9 @@ public class TokenWorker {
 		String resourcePath = TokenWorker.class.getClassLoader().getResource("demo.ds").getPath();
 		Path path = Paths.get(resourcePath.substring(1));
 		List<String> lines = Files.readAllLines(path);
-		TokenWorker.getTokens(lines.toArray(new String[] {}));
+		var tokenResult = TokenWorker.getTokens(lines);
+		var result = SyntaxWorker.parse(tokenResult.tokens);
+		System.out.println();
 	}
 
 }
