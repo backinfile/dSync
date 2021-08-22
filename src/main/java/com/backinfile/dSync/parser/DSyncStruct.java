@@ -74,7 +74,7 @@ public class DSyncStruct {
 		public DSyncStructType type;
 		public String typeName;
 		public boolean isArray = false;
-		public String comment;
+		public String comment = "";
 
 		public DSyncVariable() {
 		}

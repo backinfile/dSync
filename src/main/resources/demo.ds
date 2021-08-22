@@ -1,20 +1,20 @@
 
-root struct Board {
-	Human[] humans;
+root struct DBoard {
+	DHuman[] humans;
 }
 
 // 玩家信息
-struct Human {
+struct DHuman {
 	long id;
 	string name;
-	CardPile handPile; // 手牌
+	DCardPile handPile; // 手牌
 	String[] cards;
 }
 
-struct CardPile {
-	Card[] cards;
+struct DCardPile {
+	DCard[] cards;
 }
 
-struct Card {
+struct DCard {
 	long id;
 }

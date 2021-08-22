@@ -9,42 +9,169 @@ import com.backinfile.dSync.model.DSyncException;
 import com.backinfile.dSync.model.Mode;
 
 public class Handler extends DSyncBaseHandler {
-	private Board root;
+	private DBoard root;
 
 	public Handler(Mode mode) {
 		super(mode);
-		root = new Board();
+		root = new DBoard();
 		root.init();
 		put(root);
 		root.sync();
 	}
 
-	public Board getRoot() {
+	public DBoard getRoot() {
 		return root;
 	}
 
 	@Override
 	protected DSyncBase newDSyncInstance(String typeName) {
 		switch (typeName) {
-		case Human.TypeName:
-			return new Human();
-		case CardPile.TypeName:
-			return new CardPile();
-		case Board.TypeName:
-			return new Board();
-		case Card.TypeName:
-			return new Card();
+		case DCard.TypeName:
+			return new DCard();
+		case DBoard.TypeName:
+			return new DBoard();
+		case DCardPile.TypeName:
+			return new DCardPile();
+		case DHuman.TypeName:
+			return new DHuman();
 		default:
 			return null;
 		}
 	}
 
-	public static class Human extends DSyncBase {
-		public static final String TypeName = "Human";
+	public static class DCard extends DSyncBase {
+		public static final String TypeName = "DCard";
+		
+		private long id;
+
+		public static class K {
+			public static final String id = "id";
+		}
+
+		private DCard() {
+		}
+
+		public static DCard newInstance(Handler _handler) {
+			if (_handler.mode == Mode.Client) {
+				throw new DSyncException("Client模式下，不能创建DSync数据对象");
+			}
+			DCard _struct = new DCard();
+			_struct.init();
+			if (_handler.mode == Mode.Server) {
+				_handler.put(_struct);
+			}
+			return _struct;
+		}
+
+		@Override
+		protected void init() {
+			id = 0;
+		}
+
+		@Override
+		protected void getRecord(JSONObject jsonObject) {
+			jsonObject.put(DSyncBase.K.TypeName, TypeName);
+			jsonObject.put(K.id, id);
+		}
+
+		@Override
+		protected void applyRecord(JSONObject jsonObject) {
+			id = jsonObject.getLongValue(K.id);
+		}
+	}
+	
+	public static class DBoard extends DSyncBase {
+		public static final String TypeName = "DBoard";
+		
+		private List<DHuman> humans;
+
+		public static class K {
+			public static final String humans = "humans";
+		}
+
+		private DBoard() {
+		}
+
+		public static DBoard newInstance(Handler _handler) {
+			if (_handler.mode == Mode.Client) {
+				throw new DSyncException("Client模式下，不能创建DSync数据对象");
+			}
+			DBoard _struct = new DBoard();
+			_struct.init();
+			if (_handler.mode == Mode.Server) {
+				_handler.put(_struct);
+			}
+			return _struct;
+		}
+
+		@Override
+		protected void init() {
+			humans = new ArrayList<>();
+		}
+
+		@Override
+		protected void getRecord(JSONObject jsonObject) {
+			jsonObject.put(DSyncBase.K.TypeName, TypeName);
+			jsonObject.put(K.humans, toJSONString(humans));
+		}
+
+		@Override
+		protected void applyRecord(JSONObject jsonObject) {
+			humans = fromJSONString(jsonObject.getString(K.humans));
+		}
+	}
+	
+	public static class DCardPile extends DSyncBase {
+		public static final String TypeName = "DCardPile";
+		
+		private List<DCard> cards;
+
+		public static class K {
+			public static final String cards = "cards";
+		}
+
+		private DCardPile() {
+		}
+
+		public static DCardPile newInstance(Handler _handler) {
+			if (_handler.mode == Mode.Client) {
+				throw new DSyncException("Client模式下，不能创建DSync数据对象");
+			}
+			DCardPile _struct = new DCardPile();
+			_struct.init();
+			if (_handler.mode == Mode.Server) {
+				_handler.put(_struct);
+			}
+			return _struct;
+		}
+
+		@Override
+		protected void init() {
+			cards = new ArrayList<>();
+		}
+
+		@Override
+		protected void getRecord(JSONObject jsonObject) {
+			jsonObject.put(DSyncBase.K.TypeName, TypeName);
+			jsonObject.put(K.cards, toJSONString(cards));
+		}
+
+		@Override
+		protected void applyRecord(JSONObject jsonObject) {
+			cards = fromJSONString(jsonObject.getString(K.cards));
+		}
+	}
+	
+	/**
+	 * 玩家信息
+	 */
+	public static class DHuman extends DSyncBase {
+		public static final String TypeName = "DHuman";
 		
 		private long id;
 		private String name;
-		private CardPile handPile;
+		/** 手牌 */
+		private DCardPile handPile;
 		private List<String> cards;
 
 		public static class K {
@@ -54,14 +181,14 @@ public class Handler extends DSyncBaseHandler {
 			public static final String cards = "cards";
 		}
 
-		private Human() {
+		private DHuman() {
 		}
 
-		public static Human newInstance(Handler _handler) {
+		public static DHuman newInstance(Handler _handler) {
 			if (_handler.mode == Mode.Client) {
 				throw new DSyncException("Client模式下，不能创建DSync数据对象");
 			}
-			Human _struct = new Human();
+			DHuman _struct = new DHuman();
 			_struct.init();
 			if (_handler.mode == Mode.Server) {
 				_handler.put(_struct);
@@ -90,129 +217,10 @@ public class Handler extends DSyncBaseHandler {
 		protected void applyRecord(JSONObject jsonObject) {
 			id = jsonObject.getLongValue(K.id);
 			name = jsonObject.getString(K.name);
-			handPile = (CardPile) handler.get(jsonObject.getLongValue(K.handPile));
+			handPile = (DCardPile) handler.get(jsonObject.getLongValue(K.handPile));
 			cards = JSONObject.parseArray(jsonObject.getString(K.cards), String.class);
 		}
 	}
-	public static class CardPile extends DSyncBase {
-		public static final String TypeName = "CardPile";
-		
-		private List<Card> cards;
-
-		public static class K {
-			public static final String cards = "cards";
-		}
-
-		private CardPile() {
-		}
-
-		public static CardPile newInstance(Handler _handler) {
-			if (_handler.mode == Mode.Client) {
-				throw new DSyncException("Client模式下，不能创建DSync数据对象");
-			}
-			CardPile _struct = new CardPile();
-			_struct.init();
-			if (_handler.mode == Mode.Server) {
-				_handler.put(_struct);
-			}
-			return _struct;
-		}
-
-		@Override
-		protected void init() {
-			cards = new ArrayList<>();
-		}
-
-		@Override
-		protected void getRecord(JSONObject jsonObject) {
-			jsonObject.put(DSyncBase.K.TypeName, TypeName);
-			jsonObject.put(K.cards, toJSONString(cards));
-		}
-
-		@Override
-		protected void applyRecord(JSONObject jsonObject) {
-			cards = fromJSONString(jsonObject.getString(K.cards));
-		}
-	}
-	public static class Board extends DSyncBase {
-		public static final String TypeName = "Board";
-		
-		private List<Human> humans;
-
-		public static class K {
-			public static final String humans = "humans";
-		}
-
-		private Board() {
-		}
-
-		public static Board newInstance(Handler _handler) {
-			if (_handler.mode == Mode.Client) {
-				throw new DSyncException("Client模式下，不能创建DSync数据对象");
-			}
-			Board _struct = new Board();
-			_struct.init();
-			if (_handler.mode == Mode.Server) {
-				_handler.put(_struct);
-			}
-			return _struct;
-		}
-
-		@Override
-		protected void init() {
-			humans = new ArrayList<>();
-		}
-
-		@Override
-		protected void getRecord(JSONObject jsonObject) {
-			jsonObject.put(DSyncBase.K.TypeName, TypeName);
-			jsonObject.put(K.humans, toJSONString(humans));
-		}
-
-		@Override
-		protected void applyRecord(JSONObject jsonObject) {
-			humans = fromJSONString(jsonObject.getString(K.humans));
-		}
-	}
-	public static class Card extends DSyncBase {
-		public static final String TypeName = "Card";
-		
-		private long id;
-
-		public static class K {
-			public static final String id = "id";
-		}
-
-		private Card() {
-		}
-
-		public static Card newInstance(Handler _handler) {
-			if (_handler.mode == Mode.Client) {
-				throw new DSyncException("Client模式下，不能创建DSync数据对象");
-			}
-			Card _struct = new Card();
-			_struct.init();
-			if (_handler.mode == Mode.Server) {
-				_handler.put(_struct);
-			}
-			return _struct;
-		}
-
-		@Override
-		protected void init() {
-			id = 0;
-		}
-
-		@Override
-		protected void getRecord(JSONObject jsonObject) {
-			jsonObject.put(DSyncBase.K.TypeName, TypeName);
-			jsonObject.put(K.id, id);
-		}
-
-		@Override
-		protected void applyRecord(JSONObject jsonObject) {
-			id = jsonObject.getLongValue(K.id);
-		}
-	}
+	
 }
 

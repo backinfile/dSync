@@ -21,11 +21,14 @@ public abstract class GenBase {
 	private final Configuration configuration;
 	protected final Map<String, Object> rootMap = new HashMap<>();
 
-	private String templateFileName = "";
-	private String targetPackagePath = "";
-	private String fileName = "";
-	private static final String TemplateFileDir = "/template";
-	private static final String projectPath = "src\\main\\java";
+	protected String templateFileName = "";
+	protected String targetPackagePath = "";
+	protected String targetPackagePathHead = "";
+	protected String fileName = "";
+	protected String className = "";
+	protected String templateFileDir = "/template";
+	protected String projectPath = "src\\main\\java";
+	protected Class<?> resourceLoaderClass = GenBase.class;
 
 	public boolean canGen = true;
 
@@ -33,20 +36,37 @@ public abstract class GenBase {
 
 		configuration = new Configuration(Configuration.VERSION_2_3_22);
 
-		configuration.setClassForTemplateLoading(GenBase.class, TemplateFileDir);
+		configuration.setClassForTemplateLoading(resourceLoaderClass, templateFileDir);
 		configuration.setDefaultEncoding("UTF-8");
 		configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 	}
 
-	protected void setTemplateFileName(String fileName) {
+	public void setClassName(String className) {
+		this.className = className;
+	}
+
+	public void setProjectPath(String projectPath) {
+		this.projectPath = projectPath;
+	}
+
+	public void setTargetPackagePath(String targetPackagePath) {
+		this.targetPackagePath = targetPackagePath.replace(".", "\\");
+		this.targetPackagePathHead = targetPackagePath;
+	}
+
+	public void setTemplateFileDir(String templateFileDir) {
+		this.templateFileDir = templateFileDir;
+	}
+
+	public void setResourceLoaderClass(Class<?> resourceLoaderClass) {
+		this.resourceLoaderClass = resourceLoaderClass;
+	}
+
+	public void setTemplateFileName(String fileName) {
 		templateFileName = fileName;
 	}
 
-	protected void setTargetPackage(String packagePath) {
-		targetPackagePath = packagePath.replace(".", "\\");
-	}
-
-	protected void setFileName(String fileName) {
+	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
 
@@ -62,10 +82,7 @@ public abstract class GenBase {
 		}
 
 		File file = new File(projectPath + "\\" + targetPackagePath + "\\" + fileName);
-//        File file = Path.of(projectPath, targetPackagePath, fileName).toFile();
-//        Log.Gen.info("target path = {0}", file.getPath());
 		if (!file.exists()) {
-//            file.mkdir();
 			try {
 				file.createNewFile();
 			} catch (IOException e) {

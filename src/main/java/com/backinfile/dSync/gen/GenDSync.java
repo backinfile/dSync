@@ -17,9 +17,9 @@ import com.backinfile.dSync.parser.DSyncStruct.DSyncStructType;
 public class GenDSync extends GenBase {
 	public GenDSync() {
 		super();
-		setTemplateFileName("proxy.ftl");
-		setTargetPackage("com.backinfile.dSync.tmp");
-		setFileName("Handler.java");
+//		setTemplateFileName("proxy.ftl");
+//		setTargetPackage("com.backinfile.dSync.tmp");
+//		setFileName("Handler.java");
 	}
 
 	@Override
@@ -27,8 +27,8 @@ public class GenDSync extends GenBase {
 		var result = getResult();
 		var structs = new ArrayList<Map<String, Object>>();
 
-		rootMap.put("packagePath", "com.backinfile.dSync.tmp");
-		rootMap.put("handlerClassName", "Handler");
+		rootMap.put("packagePath", targetPackagePathHead);
+		rootMap.put("handlerClassName", className);
 		rootMap.put("rootClassName", result.rootStruct.getTypeName());
 		rootMap.put("structs", structs);
 		for (var struct : result.userDefineStructMap.values()) {
@@ -38,6 +38,8 @@ public class GenDSync extends GenBase {
 			structMap.put("className", struct.getTypeName());
 			structMap.put("defaultValue", struct.getTypeName());
 			structMap.put("fields", fields);
+			structMap.put("comments", struct.getComments());
+			structMap.put("hasComment", !struct.getComments().isEmpty());
 			for (var field : struct.getChildren()) {
 				var fieldMap = new HashMap<String, Object>();
 				fields.add(fieldMap);
@@ -48,6 +50,8 @@ public class GenDSync extends GenBase {
 				fieldMap.put("largeTypeName", field.getLargeTypeName());
 				fieldMap.put("longTypeName", field.getLongTypeName());
 				fieldMap.put("defaultValue", field.getDefaultValue());
+				fieldMap.put("hasComment", !field.comment.isEmpty());
+				fieldMap.put("comment", field.comment);
 			}
 		}
 

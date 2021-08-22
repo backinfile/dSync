@@ -9,7 +9,7 @@ import com.backinfile.dSync.model.DSyncException;
 import com.backinfile.dSync.model.Mode;
 
 public class ${handlerClassName} extends DSyncBaseHandler {
-	private Board root;
+	private ${rootClassName} root;
 
 	public ${handlerClassName}(Mode mode) {
 		super(mode);
@@ -19,7 +19,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 		root.sync();
 	}
 
-	public Board getRoot() {
+	public ${rootClassName} getRoot() {
 		return root;
 	}
 
@@ -36,10 +36,20 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 	}
 
 <#list structs as struct>
+<#if struct.hasComment>
+	/**
+<#list struct.comments as comment>
+	 * ${comment}
+</#list>
+	 */
+</#if>
 	public static class ${struct.className} extends DSyncBase {
 		public static final String TypeName = "${struct.className}";
 		
 <#list struct.fields as field>
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
 		private ${field.typeName} ${field.name};
 </#list>
 
@@ -110,6 +120,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 </#list>
 		}
 	}
+	
 </#list>
 }
 
