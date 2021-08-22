@@ -1,12 +1,7 @@
 package com.backinfile.dSync.gen;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.backinfile.dSync.parser.SyntaxWorker;
@@ -15,11 +10,17 @@ import com.backinfile.dSync.parser.TokenWorker;
 import com.backinfile.dSync.parser.DSyncStruct.DSyncStructType;
 
 public class GenDSync extends GenBase {
+	private String dsSource;
+
 	public GenDSync() {
 		super();
 //		setTemplateFileName("proxy.ftl");
 //		setTargetPackage("com.backinfile.dSync.tmp");
 //		setFileName("Handler.java");
+	}
+
+	public void setDsSource(String dsSource) {
+		this.dsSource = dsSource;
 	}
 
 	@Override
@@ -59,27 +60,9 @@ public class GenDSync extends GenBase {
 	}
 
 	private Result getResult() {
-		String resourcePath = TokenWorker.class.getClassLoader().getResource("demo.ds").getPath();
-		Path path = Paths.get(resourcePath.substring(1));
-		List<String> lines = null;
-		try {
-			lines = Files.readAllLines(path);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		var tokenResult = TokenWorker.getTokens(lines);
+		var tokenResult = TokenWorker.getTokens(dsSource);
 		var result = SyntaxWorker.parse(tokenResult.tokens);
 		return result;
-	}
-
-	private String getFullPackageName(Class<?> clazz) {
-		if (clazz.isPrimitive()) {
-			return "";
-		}
-		if (clazz.isArray()) {
-			return getFullPackageName(clazz.getComponentType());
-		}
-		return clazz.getPackageName() + "." + clazz.getSimpleName();
 	}
 
 	public static void main(String[] args) {

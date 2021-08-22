@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.alibaba.fastjson.JSONObject;
-
 public class DSyncStruct {
 	private DSyncStructType type;
 	private String typeName;

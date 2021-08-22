@@ -7,4 +7,8 @@ public class DSyncException extends RuntimeException {
 		super(message);
 	}
 
+	public DSyncException(Throwable cause) {
+		super(cause);
+	}
+
 }

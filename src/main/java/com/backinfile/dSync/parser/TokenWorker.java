@@ -137,6 +137,7 @@ public class TokenWorker {
 		tokenCollectionCache.clear();
 	}
 
+	@SuppressWarnings("unused")
 	public static void main(String[] args) throws IOException {
 		String resourcePath = TokenWorker.class.getClassLoader().getResource("demo.ds").getPath();
 		Path path = Paths.get(resourcePath.substring(1));

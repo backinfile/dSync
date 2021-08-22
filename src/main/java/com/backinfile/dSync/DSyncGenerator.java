@@ -1,6 +1,15 @@
 package com.backinfile.dSync;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.StringJoiner;
+
 import com.backinfile.dSync.gen.GenDSync;
+import com.backinfile.dSync.model.DSyncException;
+import com.backinfile.dSync.parser.TokenWorker;
 
 public class DSyncGenerator {
 	private Class<?> resourceLoaderClass = DSyncGenerator.class;
@@ -10,6 +19,7 @@ public class DSyncGenerator {
 	private String targetPackagePath = "com.backinfile.dSync.tmp";
 	private String fileName = "Handler.java";
 	private String className = "Handler";
+	private String dsSource = "";
 
 	public DSyncGenerator() {
 	}
@@ -23,7 +33,16 @@ public class DSyncGenerator {
 		gen.setTargetPackagePath(targetPackagePath);
 		gen.setFileName(fileName);
 		gen.setClassName(className);
+		gen.setDsSource(dsSource);
 		gen.genFile();
+	}
+
+	public void setDsSource(String dsSource) {
+		this.dsSource = dsSource;
+	}
+	
+	public void setClassName(String className) {
+		this.className = className;
 	}
 
 	public void setResourceLoaderClass(Class<?> resourceLoaderClass) {
@@ -52,6 +71,22 @@ public class DSyncGenerator {
 
 	public static void main(String[] args) {
 		var generator = new DSyncGenerator();
+		generator.setDsSource(getDSSource());
 		generator.genFile();
+	}
+
+	private static String getDSSource() {
+		String resourcePath = TokenWorker.class.getClassLoader().getResource("demo.ds").getPath();
+		Path path = Paths.get(resourcePath.substring(1));
+		try {
+			List<String> lines = Files.readAllLines(path);
+			var sj = new StringJoiner("\n");
+			for (var line : lines) {
+				sj.add(line);
+			}
+			return sj.toString();
+		} catch (IOException e) {
+			throw new DSyncException(e);
+		}
 	}
 }
