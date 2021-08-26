@@ -60,6 +60,7 @@ public class SyntaxWorker {
 			if (test(TokenType.Comment)) {
 				var token = match(TokenType.Comment);
 				lastComments.add(token.value);
+				continue;
 			}
 			if (test(TokenType.Name, DS_ROOT)) {
 				next();

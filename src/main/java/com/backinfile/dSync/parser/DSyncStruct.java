@@ -145,7 +145,7 @@ public class DSyncStruct {
 				typeName = "BooleanValue";
 				break;
 			case Int:
-				typeName = "IntegerValue";
+				typeName = "IntValue";
 				break;
 			case Long:
 				typeName = "LongValue";
