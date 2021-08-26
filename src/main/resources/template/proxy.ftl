@@ -15,7 +15,6 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 	public ${handlerClassName}(Mode mode) {
 		super(mode);
 		root = new ${rootClassName}();
-		root.init();
 		put(root);
 		root.sync();
 	}
@@ -93,6 +92,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 		}
 
 		public ${struct.className}() {
+			init();
 		}
 
 		public static ${struct.className} newInstance(${handlerClassName} _handler) {
@@ -100,7 +100,6 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 				throw new DSyncException("Client模式下，不能创建DSync数据对象");
 			}
 			${struct.className} _struct = new ${struct.className}();
-			_struct.init();
 			if (_handler.mode == Mode.Server) {
 				_handler.put(_struct);
 			}
@@ -202,6 +201,8 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#else>
 <#if field.baseType>
 			jsonObject.put(K.${field.name}, ${field.name});
+<#elseif field.enumType>
+			jsonObject.put(K.${field.name}, ${field.name}.ordinal());
 <#else>
 			jsonObject.put(K.${field.name}, ${field.name}.get_dSync_id());
 </#if>
@@ -221,6 +222,8 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#else>	
 <#if field.baseType>
 			${field.name} = jsonObject.get${field.longTypeName}(K.${field.name});
+<#elseif field.enumType>
+			${field.name} = ${field.typeName}.values()[(jsonObject.getIntValue(K.${field.name}))];
 <#else>
 			${field.name} = (${field.typeName}) handler.get(jsonObject.getLongValue(K.${field.name}));
 </#if>
@@ -229,6 +232,25 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 		}
 	}
 	
+</#list>
+
+
+<#list enums as struct>
+<#if struct.hasComment>
+	/**
+<#list struct.comments as comment>
+	 * ${comment}
+</#list>
+	 */
+</#if>
+	public static enum ${struct.className} {
+<#list struct.fields as field>
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
+		${field.name},
+</#list>
+	}
 </#list>
 }
 

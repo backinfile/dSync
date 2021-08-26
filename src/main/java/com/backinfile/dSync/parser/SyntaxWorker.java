@@ -14,6 +14,7 @@ public class SyntaxWorker {
 	private List<Token> tokens = new ArrayList<Token>();
 	private static final String DS_ROOT = "root";
 	private static final String DS_STRUCT = "struct";
+	private static final String DS_ENUM = "enum";
 	private DSyncStruct rootStruct = null;
 	private List<String> lastComments = new ArrayList<>();
 
@@ -72,6 +73,10 @@ public class SyntaxWorker {
 	}
 
 	private void parseStruct(boolean root) {
+		if (test(TokenType.Name, DS_ENUM)) {
+			parseEnum();
+			return;
+		}
 		match(TokenType.Name, DS_STRUCT);
 		var nameToken = match(TokenType.Name);
 		String typeName = nameToken.value;
@@ -108,6 +113,44 @@ public class SyntaxWorker {
 		}
 		struct.addVariable(variable);
 		var semToken = match(TokenType.Semicolon);
+
+		if (test(TokenType.Comment)) {
+			var commentToken = getToken();
+			if (semToken.lineno == commentToken.lineno) {
+				variable.comment = commentToken.value;
+				next();
+			}
+		}
+	}
+
+	private void parseEnum() {
+		match(TokenType.Name, DS_ENUM);
+		var nameToken = match(TokenType.Name);
+		String typeName = nameToken.value;
+		match(TokenType.LBrace);
+		var struct = new DSyncStruct(DSyncStructType.Enum);
+		struct.setTypeName(typeName);
+		struct.addComments(lastComments);
+		lastComments.clear();
+
+		boolean defaultValue = true;
+		while (!test(TokenType.RBrace)) {
+			parseEnumField(struct, defaultValue);
+			defaultValue = false;
+		}
+		match(TokenType.RBrace);
+		userDefineStructMap.put(typeName, struct);
+	}
+
+	private void parseEnumField(DSyncStruct struct, boolean defaultValue) {
+		var nameToken = match(TokenType.Name);
+		var variable = new DSyncVariable(nameToken.value, DSyncStructType.UserDefine, false);
+		struct.addVariable(variable);
+		var semToken = match(TokenType.Semicolon);
+		
+		if (defaultValue) {
+			struct.setDefaultValue(nameToken.value);
+		}
 
 		if (test(TokenType.Comment)) {
 			var commentToken = getToken();

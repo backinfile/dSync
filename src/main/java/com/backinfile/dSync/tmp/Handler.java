@@ -15,7 +15,6 @@ public class Handler extends DSyncBaseHandler {
 	public Handler(Mode mode) {
 		super(mode);
 		root = new DBoard();
-		root.init();
 		put(root);
 		root.sync();
 	}
@@ -105,6 +104,7 @@ public class Handler extends DSyncBaseHandler {
 		}
 
 		public DCard() {
+			init();
 		}
 
 		public static DCard newInstance(Handler _handler) {
@@ -112,7 +112,6 @@ public class Handler extends DSyncBaseHandler {
 				throw new DSyncException("Client模式下，不能创建DSync数据对象");
 			}
 			DCard _struct = new DCard();
-			_struct.init();
 			if (_handler.mode == Mode.Server) {
 				_handler.put(_struct);
 			}
@@ -145,20 +144,19 @@ public class Handler extends DSyncBaseHandler {
 		}
 	}
 	
-	/**
-	 * 玩家信息
-	 * 玩家信息2
-	 */
 	public static class DBoard extends DSyncBase {
 		public static final String TypeName = "DBoard";
 		
 		private List<DHuman> humans;
+		private EBoardState state;
 
 		public static class K {
 			public static final String humans = "humans";
+			public static final String state = "state";
 		}
 
 		public DBoard() {
+			init();
 		}
 
 		public static DBoard newInstance(Handler _handler) {
@@ -166,7 +164,6 @@ public class Handler extends DSyncBaseHandler {
 				throw new DSyncException("Client模式下，不能创建DSync数据对象");
 			}
 			DBoard _struct = new DBoard();
-			_struct.init();
 			if (_handler.mode == Mode.Server) {
 				_handler.put(_struct);
 			}
@@ -176,6 +173,7 @@ public class Handler extends DSyncBaseHandler {
 		@Override
 		protected void init() {
 			humans = new ArrayList<>();
+			state = EBoardState.Normal;
 		}
 		
 		public int getHumansCount() {
@@ -212,16 +210,26 @@ public class Handler extends DSyncBaseHandler {
 			onChanged();
 		}
 		
+		public EBoardState getState() {
+			return state;
+		}
+		
+		public void setState(EBoardState state) {
+			this.state = state;
+			onChanged();
+		}
 
 		@Override
 		protected void getRecord(JSONObject jsonObject) {
 			jsonObject.put(DSyncBase.K.TypeName, TypeName);
 			jsonObject.put(K.humans, toJSONString(humans));
+			jsonObject.put(K.state, state.ordinal());
 		}
 
 		@Override
 		protected void applyRecord(JSONObject jsonObject) {
 			humans = fromJSONString(jsonObject.getString(K.humans));
+			state = EBoardState.values()[(jsonObject.getIntValue(K.state))];
 		}
 	}
 	
@@ -235,6 +243,7 @@ public class Handler extends DSyncBaseHandler {
 		}
 
 		public DCardPile() {
+			init();
 		}
 
 		public static DCardPile newInstance(Handler _handler) {
@@ -242,7 +251,6 @@ public class Handler extends DSyncBaseHandler {
 				throw new DSyncException("Client模式下，不能创建DSync数据对象");
 			}
 			DCardPile _struct = new DCardPile();
-			_struct.init();
 			if (_handler.mode == Mode.Server) {
 				_handler.put(_struct);
 			}
@@ -301,16 +309,12 @@ public class Handler extends DSyncBaseHandler {
 		}
 	}
 	
-	/**
-	 * 玩家信息
-	 * 玩家信息2
-	 */
 	public static class DHuman extends DSyncBase {
 		public static final String TypeName = "DHuman";
 		
 		private long id;
 		private String name;
-		/** 手牌 */
+		/** card */
 		private DCardPile handPile;
 		private List<String> cards;
 
@@ -322,6 +326,7 @@ public class Handler extends DSyncBaseHandler {
 		}
 
 		public DHuman() {
+			init();
 		}
 
 		public static DHuman newInstance(Handler _handler) {
@@ -329,7 +334,6 @@ public class Handler extends DSyncBaseHandler {
 				throw new DSyncException("Client模式下，不能创建DSync数据对象");
 			}
 			DHuman _struct = new DHuman();
-			_struct.init();
 			if (_handler.mode == Mode.Server) {
 				_handler.put(_struct);
 			}
@@ -360,12 +364,12 @@ public class Handler extends DSyncBaseHandler {
 			this.name = name;
 			onChanged();
 		}
-		/** 手牌 */
+		/** card */
 		public DCardPile getHandPile() {
 			return handPile;
 		}
 		
-		/** 手牌 */
+		/** card */
 		public void setHandPile(DCardPile handPile) {
 			this.handPile = handPile;
 			onChanged();
@@ -423,5 +427,13 @@ public class Handler extends DSyncBaseHandler {
 		}
 	}
 	
+
+
+	public static enum EBoardState {
+		/** normal */
+		Normal,
+		/** run */
+		Run,
+	}
 }
 

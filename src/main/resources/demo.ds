@@ -1,16 +1,13 @@
 
-// 玩家信息
-// 玩家信息2
 root struct DBoard {
 	DHuman[] humans;
+	EBoardState state;
 }
 
-// 玩家信息
-// 玩家信息2
 struct DHuman {
 	long id;
 	string name;
-	DCardPile handPile; // 手牌
+	DCardPile handPile; // card
 	String[] cards;
 }
 
@@ -20,4 +17,9 @@ struct DCardPile {
 
 struct DCard {
 	long id;
+}
+
+enum EBoardState {
+	Normal; // normal
+	Run; // run
 }

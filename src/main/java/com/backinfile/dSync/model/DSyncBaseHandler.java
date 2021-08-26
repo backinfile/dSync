@@ -9,6 +9,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.backinfile.dSync.Log;
 
+@SuppressWarnings({ "unchecked" })
 public class DSyncBaseHandler {
 	protected long idMax = 0;
 	protected Map<Long, DSyncBase> dSyncObjs = new HashMap<>();
@@ -52,7 +53,6 @@ public class DSyncBaseHandler {
 				if (base == null) {
 					Log.Runtime.error("不能创建对象:{}", typeName);
 				} else {
-					base.init();
 					put(id, base);
 				}
 			}
@@ -109,7 +109,6 @@ public class DSyncBaseHandler {
 			return JSON.toJSONString(ids);
 		}
 
-		@SuppressWarnings("unchecked")
 		protected final <T extends DSyncBase> List<T> fromJSONString(String str) {
 			var list = new ArrayList<T>();
 			for (var id : JSON.parseArray(str, Long.class)) {

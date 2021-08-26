@@ -9,6 +9,7 @@ public class DSyncStruct {
 	private String typeName;
 	private List<DSyncVariable> children = new ArrayList<>();
 	private List<String> comments = new ArrayList<>();
+	private String defaultValue; // for enum
 
 	public DSyncStruct(DSyncStructType type) {
 		this.type = type;
@@ -24,6 +25,14 @@ public class DSyncStruct {
 
 	public DSyncStructType getType() {
 		return type;
+	}
+
+	public void setDefaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+	}
+	
+	public String getDefaultValue() {
+		return defaultValue;
 	}
 
 	public void addVariable(DSyncVariable variable) {
@@ -47,7 +56,7 @@ public class DSyncStruct {
 		Long("Long", "long", "int64"), // long
 		String("String", "string", "str"), // string
 		Boolen("Boolean", "boolean", "bool"), // boolean
-		UserDefine;
+		Enum("enum"), UserDefine;
 
 		private List<String> names = new ArrayList<>();
 
@@ -102,6 +111,7 @@ public class DSyncStruct {
 			case String:
 				typeName = "String";
 				break;
+			case Enum:
 			case UserDefine:
 				typeName = this.typeName;
 				break;
@@ -129,6 +139,7 @@ public class DSyncStruct {
 			case String:
 				typeName = "String";
 				break;
+			case Enum:
 			case UserDefine:
 				typeName = this.typeName;
 				break;
@@ -153,6 +164,7 @@ public class DSyncStruct {
 			case String:
 				typeName = "String";
 				break;
+			case Enum:
 			case UserDefine:
 				typeName = this.typeName;
 				break;
@@ -175,6 +187,8 @@ public class DSyncStruct {
 				return "0";
 			case String:
 				return "\"\"";
+			case Enum:
+				return "null";
 			case UserDefine:
 				return "null";
 			default:
@@ -183,5 +197,6 @@ public class DSyncStruct {
 			return "null";
 		}
 	}
+
 
 }
