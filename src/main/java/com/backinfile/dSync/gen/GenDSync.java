@@ -46,6 +46,7 @@ public class GenDSync extends GenBase {
 				fields.add(fieldMap);
 				fieldMap.put("typeName", field.getTypeName());
 				fieldMap.put("name", field.name);
+				fieldMap.put("largeName", field.name.substring(0, 1).toUpperCase() + field.name.substring(1));
 				fieldMap.put("array", field.isArray);
 				fieldMap.put("baseType", field.type != DSyncStructType.UserDefine);
 				fieldMap.put("largeTypeName", field.getLargeTypeName());

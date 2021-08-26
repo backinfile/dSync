@@ -18,7 +18,7 @@ import com.backinfile.dSync.Log;
  */
 public abstract class GenBase {
 
-	private final Configuration configuration;
+	private Configuration configuration;
 	protected final Map<String, Object> rootMap = new HashMap<>();
 
 	protected String templateFileName = "";
@@ -34,11 +34,6 @@ public abstract class GenBase {
 
 	public GenBase() {
 
-		configuration = new Configuration(Configuration.VERSION_2_3_22);
-
-		configuration.setClassForTemplateLoading(resourceLoaderClass, templateFileDir);
-		configuration.setDefaultEncoding("UTF-8");
-		configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 	}
 
 	public void setClassName(String className) {
@@ -73,6 +68,15 @@ public abstract class GenBase {
 	public int genFile() {
 		if (!canGen)
 			return ErrorCode.GEN_CANNOT_GEN;
+		
+		if (configuration == null) {
+			configuration = new Configuration(Configuration.VERSION_2_3_22);
+			configuration.setClassForTemplateLoading(resourceLoaderClass, templateFileDir);
+			configuration.setDefaultEncoding("UTF-8");
+			configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+		}
+		
+		
 		Template temp = null;
 		try {
 			temp = configuration.getTemplate(templateFileName);

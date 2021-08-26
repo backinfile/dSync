@@ -10,6 +10,7 @@ import com.backinfile.dSync.model.Mode;
 
 public class Handler extends DSyncBaseHandler {
 	private DBoard root;
+	private List<DSyncListener> listeners = new ArrayList<>();
 
 	public Handler(Mode mode) {
 		super(mode);
@@ -21,6 +22,61 @@ public class Handler extends DSyncBaseHandler {
 
 	public DBoard getRoot() {
 		return root;
+	}
+	
+	@Override
+	protected void onReceiveChangeLog(long id) {
+		var obj = get(id);
+		if (obj == null) {
+			return;
+		}
+		if (obj instanceof DCard) {
+			for (var listenr : listeners) {
+				listenr.onDataChange((DCard) (obj));
+			}
+			return;
+		}
+		if (obj instanceof DBoard) {
+			for (var listenr : listeners) {
+				listenr.onDataChange((DBoard) (obj));
+			}
+			return;
+		}
+		if (obj instanceof DCardPile) {
+			for (var listenr : listeners) {
+				listenr.onDataChange((DCardPile) (obj));
+			}
+			return;
+		}
+		if (obj instanceof DHuman) {
+			for (var listenr : listeners) {
+				listenr.onDataChange((DHuman) (obj));
+			}
+			return;
+		}
+	}
+	
+	public void addListener(DSyncListener listener) {
+		if (mode != Mode.Client) {
+			throw new DSyncException("非Client模式下，不能监听数据对象");
+		}
+		listeners.add(listener);
+	}
+	
+	
+	public static abstract class DSyncListener {
+		public void onDataChange(DCard data) {
+		}
+		
+		public void onDataChange(DBoard data) {
+		}
+		
+		public void onDataChange(DCardPile data) {
+		}
+		
+		public void onDataChange(DHuman data) {
+		}
+		
 	}
 
 	@Override
@@ -67,6 +123,15 @@ public class Handler extends DSyncBaseHandler {
 		protected void init() {
 			id = 0;
 		}
+		
+		public long getId() {
+			return id;
+		}
+		
+		public void setId(long id) {
+			this.id = id;
+			onChanged();
+		}
 
 		@Override
 		protected void getRecord(JSONObject jsonObject) {
@@ -108,6 +173,41 @@ public class Handler extends DSyncBaseHandler {
 		protected void init() {
 			humans = new ArrayList<>();
 		}
+		
+		public int getHumansCount() {
+			return this.humans.size();
+		}
+		
+		public List<DHuman> getAllHumans() {
+			return new ArrayList<>(humans);
+		}
+		
+		public void setAllHumans(List<DHuman> _value) {
+			this.humans.clear();
+			this.humans.addAll(_value);
+			onChanged();
+		}
+		
+		public void addHumans(DHuman _value) {
+			this.humans.add(_value);
+			onChanged();
+		}
+		
+		public void removeHumans(DHuman _value) {
+			this.humans.remove(_value);
+			onChanged();
+		}
+		
+		public void addAllHumans(List<DHuman> _value) {
+			this.humans.addAll(_value);
+			onChanged();
+		}
+		
+		public void clearHumans() {
+			this.humans.clear();
+			onChanged();
+		}
+		
 
 		@Override
 		protected void getRecord(JSONObject jsonObject) {
@@ -149,6 +249,41 @@ public class Handler extends DSyncBaseHandler {
 		protected void init() {
 			cards = new ArrayList<>();
 		}
+		
+		public int getCardsCount() {
+			return this.cards.size();
+		}
+		
+		public List<DCard> getAllCards() {
+			return new ArrayList<>(cards);
+		}
+		
+		public void setAllCards(List<DCard> _value) {
+			this.cards.clear();
+			this.cards.addAll(_value);
+			onChanged();
+		}
+		
+		public void addCards(DCard _value) {
+			this.cards.add(_value);
+			onChanged();
+		}
+		
+		public void removeCards(DCard _value) {
+			this.cards.remove(_value);
+			onChanged();
+		}
+		
+		public void addAllCards(List<DCard> _value) {
+			this.cards.addAll(_value);
+			onChanged();
+		}
+		
+		public void clearCards() {
+			this.cards.clear();
+			onChanged();
+		}
+		
 
 		@Override
 		protected void getRecord(JSONObject jsonObject) {
@@ -203,6 +338,65 @@ public class Handler extends DSyncBaseHandler {
 			handPile = null;
 			cards = new ArrayList<>();
 		}
+		
+		public long getId() {
+			return id;
+		}
+		
+		public void setId(long id) {
+			this.id = id;
+			onChanged();
+		}
+		public String getName() {
+			return name;
+		}
+		
+		public void setName(String name) {
+			this.name = name;
+			onChanged();
+		}
+		public DCardPile getHandPile() {
+			return handPile;
+		}
+		
+		public void setHandPile(DCardPile handPile) {
+			this.handPile = handPile;
+			onChanged();
+		}
+		public int getCardsCount() {
+			return this.cards.size();
+		}
+		
+		public List<String> getAllCards() {
+			return new ArrayList<>(cards);
+		}
+		
+		public void setAllCards(List<String> _value) {
+			this.cards.clear();
+			this.cards.addAll(_value);
+			onChanged();
+		}
+		
+		public void addCards(String _value) {
+			this.cards.add(_value);
+			onChanged();
+		}
+		
+		public void removeCards(String _value) {
+			this.cards.remove(_value);
+			onChanged();
+		}
+		
+		public void addAllCards(List<String> _value) {
+			this.cards.addAll(_value);
+			onChanged();
+		}
+		
+		public void clearCards() {
+			this.cards.clear();
+			onChanged();
+		}
+		
 
 		@Override
 		protected void getRecord(JSONObject jsonObject) {

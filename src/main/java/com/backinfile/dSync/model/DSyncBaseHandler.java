@@ -12,7 +12,7 @@ import com.backinfile.dSync.Log;
 public class DSyncBaseHandler {
 	protected long idMax = 0;
 	protected Map<Long, DSyncBase> dSyncObjs = new HashMap<>();
-	protected Map<Long, String> changeLogs = new HashMap<>();
+	private List<String> changeLogs = new ArrayList<>();
 	protected Mode mode;
 
 	public DSyncBaseHandler(Mode mode) {
@@ -42,7 +42,7 @@ public class DSyncBaseHandler {
 			throw new DSyncException("非Client模式，不能接受变更日志");
 		}
 		var logs = JSONObject.parseArray(logString, String.class);
-		// 预先创先需要的对象
+		// 预先创建需要的对象
 		for (var log : logs) {
 			var json = JSONObject.parseObject(log);
 			var id = json.getLongValue(DSyncBase.K._dSync_id);
@@ -56,25 +56,36 @@ public class DSyncBaseHandler {
 					put(id, base);
 				}
 			}
-		}
-		// 更新对象
-		for (var log : logs) {
-			var json = JSONObject.parseObject(log);
-			var id = json.getLongValue(DSyncBase.K._dSync_id);
+			// 更新对象
 			DSyncBase base = get(id);
 			if (base == null) {
 				Log.Runtime.error("找不到对象:{} log:{}", id, log);
 			} else {
 				base.applyRecord(json);
 			}
+			onReceiveChangeLog(id);
 		}
+	}
+
+	protected void onReceiveChangeLog(long id) {
+
 	}
 
 	public final String getChangeLog() {
 		if (mode != Mode.Server) {
 			throw new DSyncException("非Server模式，不能获取变更日志");
 		}
-		return JSONObject.toJSONString(changeLogs.values());
+		String jsonString = JSONObject.toJSONString(changeLogs);
+		changeLogs.clear();
+		return jsonString;
+	}
+
+	public final String getInitLog() {
+		var logs = new HashMap<Long, String>();
+		for (var obj : dSyncObjs.values()) {
+			logs.put(obj._dSync_id, obj.getLog());
+		}
+		return JSONObject.toJSONString(logs.values());
 	}
 
 	protected DSyncBase newDSyncInstance(String typeName) {
@@ -121,11 +132,15 @@ public class DSyncBaseHandler {
 
 		protected final void onChanged() {
 			if (handler.mode == Mode.Server) {
-				var json = new JSONObject();
-				json.put(K._dSync_id, _dSync_id);
-				getRecord(json);
-				handler.changeLogs.put(_dSync_id, json.toJSONString());
+				handler.changeLogs.add(getLog());
 			}
+		}
+
+		protected final String getLog() {
+			var json = new JSONObject();
+			json.put(K._dSync_id, _dSync_id);
+			getRecord(json);
+			return json.toJSONString();
 		}
 
 		public final void sync() {

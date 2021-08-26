@@ -40,7 +40,7 @@ public class DSyncGenerator {
 	public void setDsSource(String dsSource) {
 		this.dsSource = dsSource;
 	}
-	
+
 	public void setClassName(String className) {
 		this.className = className;
 	}

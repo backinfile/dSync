@@ -10,6 +10,7 @@ import com.backinfile.dSync.model.Mode;
 
 public class ${handlerClassName} extends DSyncBaseHandler {
 	private ${rootClassName} root;
+	private List<DSyncListener> listeners = new ArrayList<>();
 
 	public ${handlerClassName}(Mode mode) {
 		super(mode);
@@ -21,6 +22,38 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 
 	public ${rootClassName} getRoot() {
 		return root;
+	}
+	
+	@Override
+	protected void onReceiveChangeLog(long id) {
+		var obj = get(id);
+		if (obj == null) {
+			return;
+		}
+<#list structs as struct>
+		if (obj instanceof ${struct.className}) {
+			for (var listenr : listeners) {
+				listenr.onDataChange((${struct.className}) (obj));
+			}
+			return;
+		}
+</#list>
+	}
+	
+	public void addListener(DSyncListener listener) {
+		if (mode != Mode.Client) {
+			throw new DSyncException("非Client模式下，不能监听数据对象");
+		}
+		listeners.add(listener);
+	}
+	
+	
+	public static abstract class DSyncListener {
+<#list structs as struct>
+		public void onDataChange(${struct.className} data) {
+		}
+		
+</#list>
 	}
 
 	@Override
@@ -80,6 +113,54 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 			${field.name} = ${field.defaultValue};
 </#list>
 		}
+		
+<#list struct.fields as field>
+<#if field.array>
+		public int get${field.largeName}Count() {
+			return this.${field.name}.size();
+		}
+		
+		public ${field.typeName} getAll${field.largeName}() {
+			return new ArrayList<>(${field.name});
+		}
+		
+		public void setAll${field.largeName}(${field.typeName} _value) {
+			this.${field.name}.clear();
+			this.${field.name}.addAll(_value);
+			onChanged();
+		}
+		
+		public void add${field.largeName}(${field.largeTypeName} _value) {
+			this.${field.name}.add(_value);
+			onChanged();
+		}
+		
+		public void remove${field.largeName}(${field.largeTypeName} _value) {
+			this.${field.name}.remove(_value);
+			onChanged();
+		}
+		
+		public void addAll${field.largeName}(${field.typeName} _value) {
+			this.${field.name}.addAll(_value);
+			onChanged();
+		}
+		
+		public void clear${field.largeName}() {
+			this.${field.name}.clear();
+			onChanged();
+		}
+		
+<#else>
+		public ${field.typeName} get${field.largeName}() {
+			return ${field.name};
+		}
+		
+		public void set${field.largeName}(${field.typeName} ${field.name}) {
+			this.${field.name} = ${field.name};
+			onChanged();
+		}
+</#if>
+</#list>
 
 		@Override
 		protected void getRecord(JSONObject jsonObject) {
