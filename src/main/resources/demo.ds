@@ -1,9 +1,12 @@
 
+// 玩家信息
+// 玩家信息2
 root struct DBoard {
 	DHuman[] humans;
 }
 
 // 玩家信息
+// 玩家信息2
 struct DHuman {
 	long id;
 	string name;

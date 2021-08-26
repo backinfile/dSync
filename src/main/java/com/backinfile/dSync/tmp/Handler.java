@@ -104,7 +104,7 @@ public class Handler extends DSyncBaseHandler {
 			public static final String id = "id";
 		}
 
-		private DCard() {
+		public DCard() {
 		}
 
 		public static DCard newInstance(Handler _handler) {
@@ -145,6 +145,10 @@ public class Handler extends DSyncBaseHandler {
 		}
 	}
 	
+	/**
+	 * 玩家信息
+	 * 玩家信息2
+	 */
 	public static class DBoard extends DSyncBase {
 		public static final String TypeName = "DBoard";
 		
@@ -154,7 +158,7 @@ public class Handler extends DSyncBaseHandler {
 			public static final String humans = "humans";
 		}
 
-		private DBoard() {
+		public DBoard() {
 		}
 
 		public static DBoard newInstance(Handler _handler) {
@@ -230,7 +234,7 @@ public class Handler extends DSyncBaseHandler {
 			public static final String cards = "cards";
 		}
 
-		private DCardPile() {
+		public DCardPile() {
 		}
 
 		public static DCardPile newInstance(Handler _handler) {
@@ -299,6 +303,7 @@ public class Handler extends DSyncBaseHandler {
 	
 	/**
 	 * 玩家信息
+	 * 玩家信息2
 	 */
 	public static class DHuman extends DSyncBase {
 		public static final String TypeName = "DHuman";
@@ -316,7 +321,7 @@ public class Handler extends DSyncBaseHandler {
 			public static final String cards = "cards";
 		}
 
-		private DHuman() {
+		public DHuman() {
 		}
 
 		public static DHuman newInstance(Handler _handler) {
@@ -355,10 +360,12 @@ public class Handler extends DSyncBaseHandler {
 			this.name = name;
 			onChanged();
 		}
+		/** 手牌 */
 		public DCardPile getHandPile() {
 			return handPile;
 		}
 		
+		/** 手牌 */
 		public void setHandPile(DCardPile handPile) {
 			this.handPile = handPile;
 			onChanged();

@@ -92,7 +92,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 </#list>
 		}
 
-		private ${struct.className}() {
+		public ${struct.className}() {
 		}
 
 		public static ${struct.className} newInstance(${handlerClassName} _handler) {
@@ -116,45 +116,72 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 		
 <#list struct.fields as field>
 <#if field.array>
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
 		public int get${field.largeName}Count() {
 			return this.${field.name}.size();
 		}
 		
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
 		public ${field.typeName} getAll${field.largeName}() {
 			return new ArrayList<>(${field.name});
 		}
 		
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
 		public void setAll${field.largeName}(${field.typeName} _value) {
 			this.${field.name}.clear();
 			this.${field.name}.addAll(_value);
 			onChanged();
 		}
 		
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
 		public void add${field.largeName}(${field.largeTypeName} _value) {
 			this.${field.name}.add(_value);
 			onChanged();
 		}
 		
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
 		public void remove${field.largeName}(${field.largeTypeName} _value) {
 			this.${field.name}.remove(_value);
 			onChanged();
 		}
 		
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
 		public void addAll${field.largeName}(${field.typeName} _value) {
 			this.${field.name}.addAll(_value);
 			onChanged();
 		}
 		
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
 		public void clear${field.largeName}() {
 			this.${field.name}.clear();
 			onChanged();
 		}
 		
 <#else>
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
 		public ${field.typeName} get${field.largeName}() {
 			return ${field.name};
 		}
 		
+<#if field.hasComment>
+		/** ${field.comment} */
+</#if>
 		public void set${field.largeName}(${field.typeName} ${field.name}) {
 			this.${field.name} = ${field.name};
 			onChanged();
