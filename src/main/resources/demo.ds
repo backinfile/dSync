@@ -24,6 +24,7 @@ struct DCard {
 }
 
 enum EBoardState {
-	Normal; // normal
-	Run; // run
+	Normal, // normal
+	Run, // run
+	Close, // close
 }

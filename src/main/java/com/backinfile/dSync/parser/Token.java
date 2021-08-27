@@ -9,6 +9,7 @@ public class Token {
 		RSquareBracket, // 右方括号
 		Semicolon, // 分号
 		Comment, // 注释
+		Comma, // 逗号
 	}
 
 	public TokenType type;

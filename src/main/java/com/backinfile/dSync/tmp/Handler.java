@@ -688,6 +688,8 @@ public class Handler extends DSyncBaseHandler {
 		Normal,
 		/** run */
 		Run,
+		/** close */
+		Close,
 	}
 }
 

@@ -95,6 +95,7 @@ public class DSyncBaseHandler {
 	public static abstract class DSyncBase {
 		protected DSyncBaseHandler handler;
 		protected long _dSync_id;
+		private boolean inTree = false;
 
 		public static class K {
 			public static final String _dSync_id = "_dSync_id";
@@ -127,6 +128,14 @@ public class DSyncBaseHandler {
 
 		protected void applyRecord(JSONObject jsonObject) {
 
+		}
+
+		protected void setInTree(boolean inTree) {
+			this.inTree = inTree;
+		}
+
+		public final boolean isInTree() {
+			return inTree;
 		}
 
 		protected final void onChanged() {

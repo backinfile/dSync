@@ -86,6 +86,8 @@ public class TokenWorker {
 					pushToken(TokenType.RBrace);
 				} else if (character == ';') {
 					pushToken(TokenType.Semicolon);
+				} else if (character == ',') {
+					pushToken(TokenType.Comma);
 				}
 				break;
 			}

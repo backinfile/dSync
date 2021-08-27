@@ -146,15 +146,15 @@ public class SyntaxWorker {
 		var nameToken = match(TokenType.Name);
 		var variable = new DSyncVariable(nameToken.value, DSyncStructType.UserDefine, false);
 		struct.addVariable(variable);
-		var semToken = match(TokenType.Semicolon);
-		
+		Token endToken = match(TokenType.Semicolon, TokenType.Comma);
+
 		if (defaultValue) {
 			struct.setDefaultValue(nameToken.value);
 		}
 
 		if (test(TokenType.Comment)) {
 			var commentToken = getToken();
-			if (semToken.lineno == commentToken.lineno) {
+			if (endToken.lineno == commentToken.lineno) {
 				variable.comment = commentToken.value;
 				next();
 			}
@@ -186,6 +186,26 @@ public class SyntaxWorker {
 		}
 		Token token = getToken();
 		return token.type == tokenType && token.value.equals(name);
+	}
+
+	private Token match(TokenType... tokenTypes) {
+		if (index >= tokens.size()) {
+			var token = tokens.get(tokens.size() - 1);
+			throw new ParserError("语法错误 不能匹配" + tokenTypes[0].name() + " 第" + token.lineno + "行。");
+		}
+		boolean match = false;
+		var token = tokens.get(index);
+		for (var type : tokenTypes) {
+			if (type == token.type) {
+				match = true;
+				break;
+			}
+		}
+		if (!match) {
+			throw new ParserError("语法错误 不能匹配" + tokenTypes[0].name() + " 第" + token.lineno + "行。");
+		}
+		index++;
+		return token;
 	}
 
 	private Token match(TokenType tokenType) {
