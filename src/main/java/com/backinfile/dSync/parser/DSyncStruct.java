@@ -30,7 +30,7 @@ public class DSyncStruct {
 	public void setDefaultValue(String defaultValue) {
 		this.defaultValue = defaultValue;
 	}
-	
+
 	public String getDefaultValue() {
 		return defaultValue;
 	}
@@ -55,6 +55,7 @@ public class DSyncStruct {
 		Int("Int", "int", "int32", "Integer"), // int
 		Long("Long", "long", "int64"), // long
 		String("String", "string", "str"), // string
+		Double("Double", "Float", "double", "float"), // float
 		Boolen("Boolean", "boolean", "bool"), // boolean
 		Enum("enum"), UserDefine;
 
@@ -97,10 +98,16 @@ public class DSyncStruct {
 		}
 
 		public String getTypeName() {
+			if (isArray) {
+				return "List<" + getLargeTypeName() + ">";
+			}
 			String typeName = "";
 			switch (type) {
 			case Boolen:
 				typeName = "boolean";
+				break;
+			case Double:
+				typeName = "double";
 				break;
 			case Int:
 				typeName = "int";
@@ -118,9 +125,6 @@ public class DSyncStruct {
 			default:
 				break;
 			}
-			if (isArray) {
-				return "List<" + typeName + ">";
-			}
 			return typeName;
 		}
 
@@ -129,6 +133,9 @@ public class DSyncStruct {
 			switch (type) {
 			case Boolen:
 				typeName = "Boolean";
+				break;
+			case Double:
+				typeName = "Double";
 				break;
 			case Int:
 				typeName = "Integer";
@@ -149,7 +156,7 @@ public class DSyncStruct {
 			return typeName;
 		}
 
-		public String getLongTypeName() {
+		public String getJSONLongTypeName() {
 			String typeName = "";
 			switch (type) {
 			case Boolen:
@@ -160,6 +167,9 @@ public class DSyncStruct {
 				break;
 			case Long:
 				typeName = "LongValue";
+				break;
+			case Double:
+				typeName = "DoubleValue";
 				break;
 			case String:
 				typeName = "String";
@@ -185,10 +195,12 @@ public class DSyncStruct {
 				return "0";
 			case Long:
 				return "0";
+			case Double:
+				return "0f";
 			case String:
 				return "\"\"";
 			case Enum:
-				return "null";
+				return "null"; // 临时使用
 			case UserDefine:
 				return "null";
 			default:
@@ -196,7 +208,14 @@ public class DSyncStruct {
 			}
 			return "null";
 		}
-	}
 
+		public boolean isEqualType() {
+			if (isArray) {
+				return true;
+			}
+			return type == DSyncStructType.UserDefine || type == DSyncStructType.Enum || type == DSyncStructType.String;
+		}
+
+	}
 
 }

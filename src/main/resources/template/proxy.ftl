@@ -125,14 +125,14 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#if field.hasComment>
 		/** ${field.comment} */
 </#if>
-		public ${field.typeName} getAll${field.largeName}() {
+		public ${field.typeName} get${field.largeName}List() {
 			return new ArrayList<>(${field.name});
 		}
 		
 <#if field.hasComment>
 		/** ${field.comment} */
 </#if>
-		public void setAll${field.largeName}(${field.typeName} _value) {
+		public void set${field.largeName}List(${field.typeName} _value) {
 			this.${field.name}.clear();
 			this.${field.name}.addAll(_value);
 			onChanged();
@@ -229,6 +229,71 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 </#if>
 </#if>
 </#list>
+		}
+		
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (!(obj instanceof ${struct.className})) {
+				return false;
+			}
+			var _value = (${struct.className}) obj;
+<#list struct.fields as field>
+<#if field.equalType>
+			if (!this.${field.name}.equals(_value.${field.name})) {
+				return false;
+			}
+<#else>
+			if (this.${field.name} != _value.${field.name}) {
+				return false;
+			}
+</#if>
+</#list>
+			return true;
+		}
+		
+		public ${struct.className} copy() {
+			var _value = new ${struct.className}();
+			_value._dSync_id = -1;
+<#list struct.fields as field>
+<#if field.array>
+			_value.${field.name} = new ArrayList<>(this.${field.name});
+<#else>
+			_value.${field.name} = this.${field.name};
+</#if>
+</#list>
+			return _value;
+		}
+		
+		
+		public ${struct.className} deepCopy() {
+			var _value = new ${struct.className}();
+			_value._dSync_id = -1;
+<#list struct.fields as field>
+<#if field.array>
+<#if field.copyType>
+			_value.${field.name} = new ArrayList<>();
+			for(var _f: this.${field.name}) {
+				_value.${field.name}.add(_f.deepCopy());
+			}
+<#else>
+			_value.${field.name} = new ArrayList<>(this.${field.name});
+</#if>
+<#else>
+<#if field.copyType>
+			_value.${field.name} = this.${field.name}.deepCopy();
+<#else>
+			_value.${field.name} = this.${field.name};
+</#if>
+</#if>
+</#list>
+			return _value;
 		}
 	}
 	

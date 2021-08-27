@@ -7,6 +7,7 @@ import java.util.Map;
 import com.backinfile.dSync.parser.SyntaxWorker;
 import com.backinfile.dSync.parser.SyntaxWorker.Result;
 import com.backinfile.dSync.parser.TokenWorker;
+import com.backinfile.dSync.model.DSyncException;
 import com.backinfile.dSync.parser.DSyncStruct.DSyncStructType;
 
 public class GenDSync extends GenBase {
@@ -28,6 +29,10 @@ public class GenDSync extends GenBase {
 		var result = getResult();
 		var structs = new ArrayList<Map<String, Object>>();
 		var enums = new ArrayList<Map<String, Object>>();
+
+		if (result.hasError) {
+			throw new DSyncException(result.errorStr);
+		}
 
 		rootMap.put("packagePath", targetPackagePathHead);
 		rootMap.put("handlerClassName", className);
@@ -54,8 +59,10 @@ public class GenDSync extends GenBase {
 				fieldMap.put("array", field.isArray);
 				fieldMap.put("baseType", field.type != DSyncStructType.UserDefine);
 				fieldMap.put("enumType", false);
+				fieldMap.put("equalType", field.isEqualType());
+				fieldMap.put("copyType", field.type == DSyncStructType.UserDefine);
 				fieldMap.put("largeTypeName", field.getLargeTypeName());
-				fieldMap.put("longTypeName", field.getLongTypeName());
+				fieldMap.put("longTypeName", field.getJSONLongTypeName());
 				fieldMap.put("defaultValue", field.getDefaultValue());
 				fieldMap.put("hasComment", !field.comment.isEmpty());
 				fieldMap.put("comment", field.comment);
@@ -65,6 +72,7 @@ public class GenDSync extends GenBase {
 					if (dSyncStruct.getType() == DSyncStructType.Enum) {
 						fieldMap.put("baseType", false);
 						fieldMap.put("enumType", true);
+						fieldMap.put("copyType", false);
 						if (!field.isArray) {
 							fieldMap.put("defaultValue", field.typeName + "." + dSyncStruct.getDefaultValue());
 						}

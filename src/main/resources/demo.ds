@@ -4,10 +4,14 @@ root struct DBoard {
 	EBoardState state;
 }
 
+// comment test1
+// comment test2
 struct DHuman {
-	long id;
+	long[] id;
+	float percent;
+	float[] percents;
 	string name;
-	DCardPile handPile; // card
+	DCardPile handPile; // field comment
 	String[] cards;
 }
 
