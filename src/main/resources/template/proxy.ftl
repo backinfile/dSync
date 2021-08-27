@@ -3,60 +3,40 @@ package ${packagePath};
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.backinfile.dSync.model.DSyncBaseHandler;
-import com.backinfile.dSync.model.DSyncException;
-import com.backinfile.dSync.model.Mode;
 
 public class ${handlerClassName} extends DSyncBaseHandler {
-	private ${rootClassName} root;
 	private List<DSyncListener> listeners = new ArrayList<>();
 
-	public ${handlerClassName}(Mode mode) {
-		super(mode);
-		root = new ${rootClassName}();
-		put(root);
-		root.sync();
-	}
-
-	public ${rootClassName} getRoot() {
-		return root;
-	}
-	
-	@Override
-	protected void onReceiveChangeLog(long id) {
-		var obj = get(id);
-		if (obj == null) {
-			return;
-		}
-<#list structs as struct>
-		if (obj instanceof ${struct.className}) {
-			for (var listenr : listeners) {
-				listenr.onDataChange((${struct.className}) (obj));
-			}
-			return;
-		}
-</#list>
-	}
-	
 	public void addListener(DSyncListener listener) {
-		if (mode != Mode.Client) {
-			throw new DSyncException("非Client模式下，不能监听数据对象");
-		}
 		listeners.add(listener);
 	}
 	
-	
 	public static abstract class DSyncListener {
 <#list structs as struct>
-		public void onDataChange(${struct.className} data) {
+		public void onMessage(${struct.className} data) {
 		}
 		
 </#list>
 	}
+	
+	public void onMessage(String string) {
+		var jsonObject = JSONObject.parseObject(string);
+		String typeName = jsonObject.getString(DSyncBase.K.TypeName);
+		switch (typeName) {
+<#list structs as struct>
+		case ${struct.className}.TypeName:
+			for (var listener : listeners) {
+				listener.onMessage(${struct.className}.parseJSONObject(jsonObject));
+			}
+			break;
+</#list>
+		}
+	}
 
-	@Override
-	protected DSyncBase newDSyncInstance(String typeName) {
+	protected static DSyncBase newDSyncInstance(String typeName) {
 		switch (typeName) {
 <#list structs as struct>
 		case ${struct.className}.TypeName:
@@ -95,17 +75,6 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 			init();
 		}
 
-		public static ${struct.className} newInstance(${handlerClassName} _handler) {
-			if (_handler.mode == Mode.Client) {
-				throw new DSyncException("Client模式下，不能创建DSync数据对象");
-			}
-			${struct.className} _struct = new ${struct.className}();
-			if (_handler.mode == Mode.Server) {
-				_handler.put(_struct);
-			}
-			return _struct;
-		}
-
 		@Override
 		protected void init() {
 <#list struct.fields as field>
@@ -135,23 +104,13 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 		public void set${field.largeName}List(${field.typeName} _value) {
 			this.${field.name}.clear();
 			this.${field.name}.addAll(_value);
-			onChanged();
 		}
-		
+
 <#if field.hasComment>
 		/** ${field.comment} */
 </#if>
-		public void add${field.largeName}(${field.largeTypeName} _value) {
+		public void add${field.largeName}(${field.singleTypeName} _value) {
 			this.${field.name}.add(_value);
-			onChanged();
-		}
-		
-<#if field.hasComment>
-		/** ${field.comment} */
-</#if>
-		public void remove${field.largeName}(${field.largeTypeName} _value) {
-			this.${field.name}.remove(_value);
-			onChanged();
 		}
 		
 <#if field.hasComment>
@@ -159,7 +118,6 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 </#if>
 		public void addAll${field.largeName}(${field.typeName} _value) {
 			this.${field.name}.addAll(_value);
-			onChanged();
 		}
 		
 <#if field.hasComment>
@@ -167,7 +125,6 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 </#if>
 		public void clear${field.largeName}() {
 			this.${field.name}.clear();
-			onChanged();
 		}
 		
 <#else>
@@ -183,10 +140,31 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 </#if>
 		public void set${field.largeName}(${field.typeName} ${field.name}) {
 			this.${field.name} = ${field.name};
-			onChanged();
 		}
+		
 </#if>
 </#list>
+
+		static ${struct.className} parseJSONObject(JSONObject jsonObject) {
+			var _value = new ${struct.className}();
+			if (!jsonObject.isEmpty()) {
+				_value.applyRecord(jsonObject);
+			}
+			return _value;
+		}
+		
+		static List<${struct.className}> parseJSONArray(JSONArray jsonArray) {
+			var list = new ArrayList<${struct.className}>();
+			for (int i = 0; i < jsonArray.size(); i++) {
+				var _value = new ${struct.className}();
+				var jsonObject = jsonArray.getJSONObject(i);
+				if (!jsonObject.isEmpty()) {
+					_value.applyRecord(jsonObject);
+				}
+				list.add(_value);
+			}
+			return list;
+		}
 
 		@Override
 		protected void getRecord(JSONObject jsonObject) {
@@ -196,7 +174,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#if field.baseType>
 			jsonObject.put(K.${field.name}, JSONObject.toJSONString(${field.name}));
 <#else>
-			jsonObject.put(K.${field.name}, toJSONString(${field.name}));
+			jsonObject.put(K.${field.name}, getJSONArray(${field.name}));
 </#if>
 <#else>
 <#if field.baseType>
@@ -204,7 +182,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#elseif field.enumType>
 			jsonObject.put(K.${field.name}, ${field.name}.ordinal());
 <#else>
-			jsonObject.put(K.${field.name}, ${field.name}.get_dSync_id());
+			jsonObject.put(K.${field.name}, getJSONObject(${field.name}));
 </#if>
 </#if>
 </#list>
@@ -217,7 +195,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#if field.baseType>
 			${field.name} = JSONObject.parseArray(jsonObject.getString(K.${field.name}), ${field.largeTypeName}.class);
 <#else>
-			${field.name} = fromJSONString(jsonObject.getString(K.${field.name}));
+			${field.name} = ${field.largeTypeName}.parseJSONArray(jsonObject.getJSONArray(K.${field.name}));
 </#if>
 <#else>	
 <#if field.baseType>
@@ -225,12 +203,11 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#elseif field.enumType>
 			${field.name} = ${field.typeName}.values()[(jsonObject.getIntValue(K.${field.name}))];
 <#else>
-			${field.name} = (${field.typeName}) handler.get(jsonObject.getLongValue(K.${field.name}));
+			${field.name} = ${field.largeTypeName}.parseJSONObject(jsonObject.getJSONObject(K.${field.name}));
 </#if>
 </#if>
 </#list>
 		}
-		
 		
 		@Override
 		public boolean equals(Object obj) {
@@ -260,7 +237,6 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 		
 		public ${struct.className} copy() {
 			var _value = new ${struct.className}();
-			_value._dSync_id = -1;
 <#list struct.fields as field>
 <#if field.array>
 			_value.${field.name} = new ArrayList<>(this.${field.name});
@@ -271,23 +247,27 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 			return _value;
 		}
 		
-		
 		public ${struct.className} deepCopy() {
 			var _value = new ${struct.className}();
-			_value._dSync_id = -1;
 <#list struct.fields as field>
 <#if field.array>
 <#if field.copyType>
 			_value.${field.name} = new ArrayList<>();
 			for(var _f: this.${field.name}) {
-				_value.${field.name}.add(_f.deepCopy());
+				if (_f != null) {
+					_value.${field.name}.add(_f.deepCopy());
+				} else {
+					_value.${field.name}.add(null);
+				}
 			}
 <#else>
 			_value.${field.name} = new ArrayList<>(this.${field.name});
 </#if>
 <#else>
 <#if field.copyType>
-			_value.${field.name} = this.${field.name}.deepCopy();
+			if (this.${field.name} != null) {
+				_value.${field.name} = this.${field.name}.deepCopy();
+			}
 <#else>
 			_value.${field.name} = this.${field.name};
 </#if>
@@ -298,7 +278,6 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 	}
 	
 </#list>
-
 
 <#list enums as struct>
 <#if struct.hasComment>

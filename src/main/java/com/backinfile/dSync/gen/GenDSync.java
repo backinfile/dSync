@@ -62,6 +62,7 @@ public class GenDSync extends GenBase {
 				fieldMap.put("equalType", field.isEqualType());
 				fieldMap.put("copyType", field.type == DSyncStructType.UserDefine);
 				fieldMap.put("largeTypeName", field.getLargeTypeName());
+				fieldMap.put("singleTypeName", field.getSingleTypeName());
 				fieldMap.put("longTypeName", field.getJSONLongTypeName());
 				fieldMap.put("defaultValue", field.getDefaultValue());
 				fieldMap.put("hasComment", !field.comment.isEmpty());

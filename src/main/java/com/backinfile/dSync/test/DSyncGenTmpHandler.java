@@ -5,26 +5,15 @@ import java.util.List;
 
 import com.alibaba.fastjson.JSONObject;
 import com.backinfile.dSync.model.DSyncBaseHandler;
-import com.backinfile.dSync.model.DSyncException;
-import com.backinfile.dSync.model.Mode;
 
 public class DSyncGenTmpHandler extends DSyncBaseHandler {
 	private Board root;
-
-	public DSyncGenTmpHandler(Mode mode) {
-		super(mode);
-		root = new Board();
-		root.init();
-		put(root);
-		root.sync();
-	}
 
 	public Board getRoot() {
 		return root;
 	}
 
-	@Override
-	protected DSyncBase newDSyncInstance(String typeName) {
+	protected static DSyncBase newDSyncInstance(String typeName) {
 		switch (typeName) {
 		case Board.TypeName:
 			return new Board();
@@ -50,18 +39,6 @@ public class DSyncGenTmpHandler extends DSyncBaseHandler {
 		private Board() {
 		}
 
-		public static Board newInstance(DSyncGenTmpHandler handler) {
-			if (handler.mode == Mode.Client) {
-				throw new DSyncException("Client模式下，不能创建DSync数据对象");
-			}
-			Board board = new Board();
-			board.init();
-			if (handler.mode == Mode.Server) {
-				handler.put(board);
-			}
-			return board;
-		}
-
 		@Override
 		protected void init() {
 			id = 0;
@@ -74,7 +51,7 @@ public class DSyncGenTmpHandler extends DSyncBaseHandler {
 			jsonObject.put(DSyncBase.K.TypeName, TypeName);
 			jsonObject.put(K.id, id);
 			jsonObject.put(K.name, name);
-			jsonObject.put(K.humans, toJSONString(humans));
+			jsonObject.put(K.humans, getJSONArray(humans));
 		}
 
 		@Override
@@ -86,7 +63,7 @@ public class DSyncGenTmpHandler extends DSyncBaseHandler {
 
 		public void setId(long id) {
 			this.id = id;
-			onChanged();
+
 		}
 
 		public long getId() {
@@ -95,7 +72,6 @@ public class DSyncGenTmpHandler extends DSyncBaseHandler {
 
 		public void setName(String name) {
 			this.name = name;
-			onChanged();
 		}
 
 		public String getName() {
@@ -104,24 +80,20 @@ public class DSyncGenTmpHandler extends DSyncBaseHandler {
 
 		public void addHumans(Human human) {
 			this.humans.add(human);
-			onChanged();
 		}
 
 		public void addAllHumans(Iterable<Human> humans) {
 			for (var _ele : humans) {
 				this.humans.add(_ele);
 			}
-			onChanged();
 		}
 
 		public void removeHumans(Human human) {
 			this.humans.remove(human);
-			onChanged();
 		}
 
 		public void clearHumans() {
 			this.humans.clear();
-			onChanged();
 		}
 
 		public boolean containsHumans(Human human) {
@@ -145,14 +117,6 @@ public class DSyncGenTmpHandler extends DSyncBaseHandler {
 		private Human() {
 		}
 
-		public static Human newInstance(DSyncGenTmpHandler dSyncGenTmp) {
-			Human human = new Human();
-			human.init();
-			dSyncGenTmp.put(human);
-			human.onChanged();
-			return human;
-		}
-
 		@Override
 		protected void init() {
 			this.name = "";
@@ -165,7 +129,6 @@ public class DSyncGenTmpHandler extends DSyncBaseHandler {
 
 		public void setName(String name) {
 			this.name = name;
-			onChanged();
 		}
 
 		public List<String> getAllCards() {
@@ -174,7 +137,6 @@ public class DSyncGenTmpHandler extends DSyncBaseHandler {
 
 		public void addCards(String cards) {
 			this.cards.add(cards);
-			onChanged();
 		}
 
 		public boolean containsCards(String cards) {
@@ -192,4 +154,5 @@ public class DSyncGenTmpHandler extends DSyncBaseHandler {
 			name = jsonObject.getString(K.name);
 		}
 	}
+
 }
