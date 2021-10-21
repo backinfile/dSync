@@ -20,7 +20,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 	
 	public static abstract class DSyncListener {
 <#list structs as struct>
-		public void onMessage(${struct.className} data) {
+		public void onMessage(${handlerClassName} handler, ${struct.className} msg) {
 		}
 		
 </#list>
@@ -33,11 +33,23 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#list structs as struct>
 		case ${struct.className}.TypeName:
 			for (var listener : listeners) {
-				listener.onMessage(${struct.className}.parseJSONObject(jsonObject));
+				listener.onMessage(this, ${struct.className}.parseJSONObject(jsonObject));
 			}
 			break;
 </#list>
 		}
+	}
+	
+	public static DSyncBase parseStruct(String string) {
+		var jsonObject = JSONObject.parseObject(string);
+		String typeName = jsonObject.getString(DSyncBase.K.TypeName);
+		switch (typeName) {
+<#list structs as struct>
+		case ${struct.className}.TypeName:
+			return ${struct.className}.parseJSONObject(jsonObject);
+</#list>
+		}
+		return null;
 	}
 
 	protected static DSyncBase newDSyncInstance(String typeName) {
@@ -149,7 +161,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 </#if>
 </#list>
 
-		static ${struct.className} parseJSONObject(JSONObject jsonObject) {
+		public static ${struct.className} parseJSONObject(JSONObject jsonObject) {
 			var _value = new ${struct.className}();
 			if (!jsonObject.isEmpty()) {
 				_value.applyRecord(jsonObject);
@@ -157,7 +169,7 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 			return _value;
 		}
 		
-		static List<${struct.className}> parseJSONArray(JSONArray jsonArray) {
+		public static List<${struct.className}> parseJSONArray(JSONArray jsonArray) {
 			var list = new ArrayList<${struct.className}>();
 			for (int i = 0; i < jsonArray.size(); i++) {
 				var _value = new ${struct.className}();

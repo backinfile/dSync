@@ -19,9 +19,9 @@ import com.backinfile.dSync.parser.SyntaxWorker.Result;
 public class DSyncGenerator {
 	private String filePath = DSyncGenerator.class.getClassLoader().getResource("").getPath();
 	private String fileName = "dSync.ftl";
-	private String outPackagePath = "com.backinfile.dSync.tmp";
-	private String outFilePath = "src\\main\\java\\com\\backinfile\\dSync\\tmp";
-	private String outClassName = "Handler";
+	private String outPackagePath = "com.backinfile.dSync.demo";
+	private String outFilePath = "src\\main\\java\\com\\backinfile\\dSync\\demo";
+	private String outClassName = "HandlerDemo";
 	private String dsSource = "";
 
 	public DSyncGenerator() {
