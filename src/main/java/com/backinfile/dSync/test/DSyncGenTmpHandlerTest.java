@@ -31,9 +31,9 @@ public class DSyncGenTmpHandlerTest {
 			}
 		});
 		handler.onMessage(message);
-		
+
 		DBoard deepCopy = board.deepCopy();
-		
+
 		System.out.println(deepCopy);
 	}
 }

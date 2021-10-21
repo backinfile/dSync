@@ -12,10 +12,10 @@ import com.backinfile.dSync.parser.Token.TokenType;
 public class SyntaxWorker {
 	private Map<String, DSyncStruct> userDefineStructMap = new HashMap<String, DSyncStruct>();
 	private List<Token> tokens = new ArrayList<Token>();
-	private static final String DS_ROOT = "root";
+	private static final String DS_MSG = "message";
 	private static final String DS_STRUCT = "struct";
 	private static final String DS_ENUM = "enum";
-	private DSyncStruct rootStruct = null;
+	private Map<String, DSyncStruct> messageStructMap = new HashMap<>();
 	private List<String> lastComments = new ArrayList<>();
 
 	public static class Result {
@@ -36,7 +36,6 @@ public class SyntaxWorker {
 			SyntaxWorker worker = new SyntaxWorker();
 			worker.tokens.addAll(tokens);
 			worker.parseRoot();
-			result.rootStruct = worker.rootStruct;
 			result.userDefineStructMap.putAll(worker.getUserDefineStructMap());
 		} catch (Exception e) {
 			result.hasError = true;
@@ -44,10 +43,6 @@ public class SyntaxWorker {
 		}
 		return result;
 
-	}
-
-	public DSyncStruct getRootStruct() {
-		return rootStruct;
 	}
 
 	public Map<String, DSyncStruct> getUserDefineStructMap() {
@@ -63,21 +58,21 @@ public class SyntaxWorker {
 				lastComments.add(token.value);
 				continue;
 			}
-			if (test(TokenType.Name, DS_ROOT)) {
+			if (test(TokenType.Name, DS_MSG)) {
 				next();
 				parseStruct(true);
-			} else {
+			} else if (test(TokenType.Name, DS_STRUCT)) {
+				next();
 				parseStruct(false);
+			} else if (test(TokenType.Name, DS_ENUM)) {
+				next();
+				parseEnum();
 			}
 		}
+
 	}
 
-	private void parseStruct(boolean root) {
-		if (test(TokenType.Name, DS_ENUM)) {
-			parseEnum();
-			return;
-		}
-		match(TokenType.Name, DS_STRUCT);
+	private void parseStruct(boolean isMsg) {
 		var nameToken = match(TokenType.Name);
 		String typeName = nameToken.value;
 		match(TokenType.LBrace);
@@ -90,10 +85,10 @@ public class SyntaxWorker {
 			parseFiled(struct);
 		}
 		match(TokenType.RBrace);
-		userDefineStructMap.put(typeName, struct);
 
-		if (root) {
-			rootStruct = struct;
+		userDefineStructMap.put(typeName, struct);
+		if (isMsg) {
+			messageStructMap.put(typeName, struct);
 		}
 	}
 
@@ -124,7 +119,6 @@ public class SyntaxWorker {
 	}
 
 	private void parseEnum() {
-		match(TokenType.Name, DS_ENUM);
 		var nameToken = match(TokenType.Name);
 		String typeName = nameToken.value;
 		match(TokenType.LBrace);

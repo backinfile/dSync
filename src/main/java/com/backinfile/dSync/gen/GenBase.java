@@ -16,7 +16,7 @@ import com.backinfile.dSync.Log;
 /**
  * 每个实现类对应一个模板文件，可以生成多个代码文件
  */
-public abstract class GenBase {
+abstract class GenBase {
 
 	private Configuration configuration;
 	protected final Map<String, Object> rootMap = new HashMap<>();
@@ -68,15 +68,14 @@ public abstract class GenBase {
 	public int genFile() {
 		if (!canGen)
 			return ErrorCode.GEN_CANNOT_GEN;
-		
+
 		if (configuration == null) {
 			configuration = new Configuration(Configuration.VERSION_2_3_22);
 			configuration.setClassForTemplateLoading(resourceLoaderClass, templateFileDir);
 			configuration.setDefaultEncoding("UTF-8");
 			configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 		}
-		
-		
+
 		Template temp = null;
 		try {
 			temp = configuration.getTemplate(templateFileName);

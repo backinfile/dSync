@@ -14,7 +14,14 @@ public class Handler extends DSyncBaseHandler {
 		listeners.add(listener);
 	}
 	
+	public void removeListener(DSyncListener listener) {
+		listeners.remove(listener);
+	}
+	
 	public static abstract class DSyncListener {
+		public void onMessage(SCGameStart data) {
+		}
+		
 		public void onMessage(DCard data) {
 		}
 		
@@ -33,6 +40,11 @@ public class Handler extends DSyncBaseHandler {
 		var jsonObject = JSONObject.parseObject(string);
 		String typeName = jsonObject.getString(DSyncBase.K.TypeName);
 		switch (typeName) {
+		case SCGameStart.TypeName:
+			for (var listener : listeners) {
+				listener.onMessage(SCGameStart.parseJSONObject(jsonObject));
+			}
+			break;
 		case DCard.TypeName:
 			for (var listener : listeners) {
 				listener.onMessage(DCard.parseJSONObject(jsonObject));
@@ -58,6 +70,8 @@ public class Handler extends DSyncBaseHandler {
 
 	protected static DSyncBase newDSyncInstance(String typeName) {
 		switch (typeName) {
+		case SCGameStart.TypeName:
+			return new SCGameStart();
 		case DCard.TypeName:
 			return new DCard();
 		case DBoard.TypeName:
@@ -71,6 +85,96 @@ public class Handler extends DSyncBaseHandler {
 		}
 	}
 
+	public static class SCGameStart extends DSyncBase {
+		public static final String TypeName = "SCGameStart";
+		
+		private long seed;
+
+		public static class K {
+			public static final String seed = "seed";
+		}
+
+		public SCGameStart() {
+			init();
+		}
+
+		@Override
+		protected void init() {
+			seed = 0;
+		}
+		
+		public long getSeed() {
+			return seed;
+		}
+		
+		public void setSeed(long seed) {
+			this.seed = seed;
+		}
+		
+
+		static SCGameStart parseJSONObject(JSONObject jsonObject) {
+			var _value = new SCGameStart();
+			if (!jsonObject.isEmpty()) {
+				_value.applyRecord(jsonObject);
+			}
+			return _value;
+		}
+		
+		static List<SCGameStart> parseJSONArray(JSONArray jsonArray) {
+			var list = new ArrayList<SCGameStart>();
+			for (int i = 0; i < jsonArray.size(); i++) {
+				var _value = new SCGameStart();
+				var jsonObject = jsonArray.getJSONObject(i);
+				if (!jsonObject.isEmpty()) {
+					_value.applyRecord(jsonObject);
+				}
+				list.add(_value);
+			}
+			return list;
+		}
+
+		@Override
+		public void getRecord(JSONObject jsonObject) {
+			jsonObject.put(DSyncBase.K.TypeName, TypeName);
+			jsonObject.put(K.seed, seed);
+		}
+
+		@Override
+		public void applyRecord(JSONObject jsonObject) {
+			seed = jsonObject.getLongValue(K.seed);
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (!(obj instanceof SCGameStart)) {
+				return false;
+			}
+			var _value = (SCGameStart) obj;
+			if (this.seed != _value.seed) {
+				return false;
+			}
+			return true;
+		}
+		
+		public SCGameStart copy() {
+			var _value = new SCGameStart();
+			_value.seed = this.seed;
+			return _value;
+		}
+		
+		public SCGameStart deepCopy() {
+			var _value = new SCGameStart();
+			_value.seed = this.seed;
+			return _value;
+		}
+	}
+	
 	public static class DCard extends DSyncBase {
 		public static final String TypeName = "DCard";
 		
@@ -120,13 +224,13 @@ public class Handler extends DSyncBaseHandler {
 		}
 
 		@Override
-		protected void getRecord(JSONObject jsonObject) {
+		public void getRecord(JSONObject jsonObject) {
 			jsonObject.put(DSyncBase.K.TypeName, TypeName);
 			jsonObject.put(K.id, id);
 		}
 
 		@Override
-		protected void applyRecord(JSONObject jsonObject) {
+		public void applyRecord(JSONObject jsonObject) {
 			id = jsonObject.getLongValue(K.id);
 		}
 		
@@ -238,14 +342,14 @@ public class Handler extends DSyncBaseHandler {
 		}
 
 		@Override
-		protected void getRecord(JSONObject jsonObject) {
+		public void getRecord(JSONObject jsonObject) {
 			jsonObject.put(DSyncBase.K.TypeName, TypeName);
 			jsonObject.put(K.humans, getJSONArray(humans));
 			jsonObject.put(K.state, state.ordinal());
 		}
 
 		@Override
-		protected void applyRecord(JSONObject jsonObject) {
+		public void applyRecord(JSONObject jsonObject) {
 			humans = DHuman.parseJSONArray(jsonObject.getJSONArray(K.humans));
 			state = EBoardState.values()[(jsonObject.getIntValue(K.state))];
 		}
@@ -359,13 +463,13 @@ public class Handler extends DSyncBaseHandler {
 		}
 
 		@Override
-		protected void getRecord(JSONObject jsonObject) {
+		public void getRecord(JSONObject jsonObject) {
 			jsonObject.put(DSyncBase.K.TypeName, TypeName);
 			jsonObject.put(K.cards, getJSONArray(cards));
 		}
 
 		@Override
-		protected void applyRecord(JSONObject jsonObject) {
+		public void applyRecord(JSONObject jsonObject) {
 			cards = DCard.parseJSONArray(jsonObject.getJSONArray(K.cards));
 		}
 		
@@ -569,7 +673,7 @@ public class Handler extends DSyncBaseHandler {
 		}
 
 		@Override
-		protected void getRecord(JSONObject jsonObject) {
+		public void getRecord(JSONObject jsonObject) {
 			jsonObject.put(DSyncBase.K.TypeName, TypeName);
 			jsonObject.put(K.id, JSONObject.toJSONString(id));
 			jsonObject.put(K.percent, percent);
@@ -580,7 +684,7 @@ public class Handler extends DSyncBaseHandler {
 		}
 
 		@Override
-		protected void applyRecord(JSONObject jsonObject) {
+		public void applyRecord(JSONObject jsonObject) {
 			id = JSONObject.parseArray(jsonObject.getString(K.id), Long.class);
 			percent = jsonObject.getDoubleValue(K.percent);
 			percents = JSONObject.parseArray(jsonObject.getString(K.percents), Double.class);

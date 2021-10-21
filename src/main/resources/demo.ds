@@ -1,5 +1,5 @@
 
-root struct DBoard {
+struct DBoard {
 	DHuman[] humans;
 	EBoardState state;
 }
@@ -21,6 +21,10 @@ struct DCardPile {
 
 struct DCard {
 	long id;
+}
+
+message SCGameStart {
+	long seed;
 }
 
 enum EBoardState {

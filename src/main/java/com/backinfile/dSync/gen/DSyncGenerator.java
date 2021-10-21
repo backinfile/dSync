@@ -1,32 +1,66 @@
 package com.backinfile.dSync.gen;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
-import com.backinfile.dSync.parser.SyntaxWorker;
-import com.backinfile.dSync.parser.SyntaxWorker.Result;
-import com.backinfile.dSync.parser.TokenWorker;
 import com.backinfile.dSync.model.DSyncException;
+import com.backinfile.dSync.parser.SyntaxWorker;
+import com.backinfile.dSync.parser.TokenWorker;
 import com.backinfile.dSync.parser.DSyncStruct.DSyncStructType;
+import com.backinfile.dSync.parser.SyntaxWorker.Result;
 
-class GenDSync extends GenBase {
-	private String dsSource;
+public class DSyncGenerator {
+	private String filePath = DSyncGenerator.class.getClassLoader().getResource("").getPath();
+	private String fileName = "dSync.ftl";
+	private String outPackagePath = "com.backinfile.dSync.tmp";
+	private String outFilePath = "src\\main\\java\\com\\backinfile\\dSync\\tmp";
+	private String outClassName = "Handler";
+	private String dsSource = "";
 
-	public GenDSync() {
-		super();
-//		setTemplateFileName("proxy.ftl");
-//		setTargetPackage("com.backinfile.dSync.tmp");
-//		setFileName("Handler.java");
+	public DSyncGenerator() {
 	}
 
-	public void setDsSource(String dsSource) {
-		this.dsSource = dsSource;
+	public void genFile() {
+		dsSource = getDSSource();
+		doGenFile();
 	}
 
-	@Override
-	public int genFile() {
+	public static void main(String[] args) {
+		var generator = new DSyncGenerator();
+		generator.genFile();
+	}
+
+	private static String getDSSource() {
+		String resourcePath = TokenWorker.class.getClassLoader().getResource("demo.ds").getPath();
+		Path path = Paths.get(resourcePath.substring(1));
+		try {
+			List<String> lines = Files.readAllLines(path);
+			var sj = new StringJoiner("\n");
+			for (var line : lines) {
+				sj.add(line);
+			}
+			return sj.toString();
+		} catch (IOException e) {
+			throw new DSyncException(e);
+		}
+	}
+
+	private Result getResult() {
+		var tokenResult = TokenWorker.getTokens(dsSource);
+		var result = SyntaxWorker.parse(tokenResult.tokens);
+		return result;
+	}
+
+	private void doGenFile() {
 		var result = getResult();
+		var rootMap = new HashMap<String, Object>();
 		var structs = new ArrayList<Map<String, Object>>();
 		var enums = new ArrayList<Map<String, Object>>();
 
@@ -34,8 +68,8 @@ class GenDSync extends GenBase {
 			throw new DSyncException(result.errorStr);
 		}
 
-		rootMap.put("packagePath", targetPackagePathHead);
-		rootMap.put("handlerClassName", className);
+		rootMap.put("packagePath", outPackagePath);
+		rootMap.put("handlerClassName", outClassName);
 		rootMap.put("structs", structs);
 		rootMap.put("enums", enums);
 		for (var struct : result.userDefineStructMap.values()) {
@@ -102,12 +136,6 @@ class GenDSync extends GenBase {
 			}
 		}
 
-		return super.genFile();
-	}
-
-	private Result getResult() {
-		var tokenResult = TokenWorker.getTokens(dsSource);
-		var result = SyntaxWorker.parse(tokenResult.tokens);
-		return result;
+		FreeMarkerManager.formatFile(filePath, fileName, rootMap, outFilePath, outClassName + ".java");
 	}
 }
