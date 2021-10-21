@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.backinfile.dSync.model.DSyncBaseHandler;
 
+// 消息管理器
 public class ${handlerClassName} extends DSyncBaseHandler {
 	private List<DSyncListener> listeners = new ArrayList<>();
 
@@ -18,26 +19,34 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 		listeners.remove(listener);
 	}
 	
+	// 消息监听接口
 	public static abstract class DSyncListener {
 <#list structs as struct>
+<#if struct.isMsg>
+
 		public void onMessage(${handlerClassName} handler, ${struct.className} msg) {
 		}
-		
+</#if>
 </#list>
 	}
 	
+	// 接受到消息，解析并派发给监听者
 	public void onMessage(String string) {
+<#if hasMsg>
 		var jsonObject = JSONObject.parseObject(string);
 		String typeName = jsonObject.getString(DSyncBase.K.TypeName);
 		switch (typeName) {
 <#list structs as struct>
+<#if struct.isMsg>
 		case ${struct.className}.TypeName:
 			for (var listener : listeners) {
 				listener.onMessage(this, ${struct.className}.parseJSONObject(jsonObject));
 			}
 			break;
+</#if>
 </#list>
 		}
+</#if>
 	}
 	
 	public static DSyncBase parseStruct(String string) {
@@ -117,23 +126,23 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 <#if field.hasComment>
 		/** ${field.comment} */
 </#if>
-		public void set${field.largeName}List(${field.typeName} _value) {
+		public void set${field.largeName}List(${field.typeName} ${field.name}) {
 			this.${field.name}.clear();
-			this.${field.name}.addAll(_value);
+			this.${field.name}.addAll(${field.name});
 		}
 
 <#if field.hasComment>
 		/** ${field.comment} */
 </#if>
-		public void add${field.largeName}(${field.singleTypeName} _value) {
-			this.${field.name}.add(_value);
+		public void add${field.largeName}(${field.singleTypeName} ${field.name}) {
+			this.${field.name}.add(${field.name});
 		}
 		
 <#if field.hasComment>
 		/** ${field.comment} */
 </#if>
-		public void addAll${field.largeName}(${field.typeName} _value) {
-			this.${field.name}.addAll(_value);
+		public void addAll${field.largeName}(${field.typeName} ${field.name}) {
+			this.${field.name}.addAll(${field.name});
 		}
 		
 <#if field.hasComment>
@@ -236,7 +245,9 @@ public class ${handlerClassName} extends DSyncBaseHandler {
 			if (!(obj instanceof ${struct.className})) {
 				return false;
 			}
+<#if (struct.fields)?size != 0>
 			var _value = (${struct.className}) obj;
+</#if>
 <#list struct.fields as field>
 <#if field.equalType>
 			if (!this.${field.name}.equals(_value.${field.name})) {

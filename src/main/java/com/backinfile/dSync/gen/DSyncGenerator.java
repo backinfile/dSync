@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import com.backinfile.dSync.Log;
 import com.backinfile.dSync.model.DSyncException;
 import com.backinfile.dSync.parser.SyntaxWorker;
 import com.backinfile.dSync.parser.TokenWorker;
@@ -22,9 +23,20 @@ public class DSyncGenerator {
 	private String outPackagePath = "com.backinfile.dSync.demo";
 	private String outFilePath = "src\\main\\java\\com\\backinfile\\dSync\\demo";
 	private String outClassName = "HandlerDemo";
+	private String dsSourceFileName = "demo.ds";
 	private String dsSource = "";
 
-	public DSyncGenerator() {
+	public static void main(String[] args) {
+		System.setProperty("log4j.configurationFile", "resources/log4j2.xml");
+		if (args.length != 3) {
+			System.out.println("usage: java -jar dSync.jar outPackagePath outFilePath outClassName");
+			return;
+		}
+		var generator = new DSyncGenerator();
+		generator.outPackagePath = args[0];
+		generator.outFilePath = args[1];
+		generator.outClassName = args[2];
+		generator.genFile();
 	}
 
 	public void genFile() {
@@ -32,15 +44,11 @@ public class DSyncGenerator {
 		doGenFile();
 	}
 
-	public static void main(String[] args) {
-		var generator = new DSyncGenerator();
-		generator.genFile();
-	}
-
-	private static String getDSSource() {
-		String resourcePath = TokenWorker.class.getClassLoader().getResource("demo.ds").getPath();
-		Path path = Paths.get(resourcePath.substring(1));
+	private String getDSSource() {
+		String resourcePath = TokenWorker.class.getClassLoader().getResource(dsSourceFileName).getPath();
 		try {
+			Path path = Paths.get(resourcePath);
+			Log.Gen.info("resourcePath = {}", resourcePath);
 			List<String> lines = Files.readAllLines(path);
 			var sj = new StringJoiner("\n");
 			for (var line : lines) {
@@ -72,6 +80,7 @@ public class DSyncGenerator {
 		rootMap.put("handlerClassName", outClassName);
 		rootMap.put("structs", structs);
 		rootMap.put("enums", enums);
+		rootMap.put("hasMsg", !result.messageStructs.isEmpty());
 		for (var struct : result.userDefineStructMap.values()) {
 			if (struct.getType() == DSyncStructType.Enum) {
 				continue;
@@ -83,6 +92,7 @@ public class DSyncGenerator {
 			structMap.put("fields", fields);
 			structMap.put("comments", struct.getComments());
 			structMap.put("hasComment", !struct.getComments().isEmpty());
+			structMap.put("isMsg", result.messageStructs.contains(struct.getTypeName()));
 			for (var field : struct.getChildren()) {
 				var fieldMap = new HashMap<String, Object>();
 				fields.add(fieldMap);
@@ -138,4 +148,5 @@ public class DSyncGenerator {
 
 		FreeMarkerManager.formatFile(filePath, fileName, rootMap, outFilePath, outClassName + ".java");
 	}
+
 }

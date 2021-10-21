@@ -1,17 +1,18 @@
+// start comment
 
+// near comment
 struct DBoard {
 	DHuman[] humans;
 	EBoardState state;
 }
 
-// comment test1
-// comment test2
+// comment test
 struct DHuman {
 	long[] id;
 	float percent;
-	float[] percents;
+	float[] percents; // field comment
 	string name;
-	DCardPile handPile; // field comment
+	DCardPile handPile;
 	String[] cards;
 }
 
@@ -21,10 +22,10 @@ struct DCardPile {
 
 struct DCard {
 	long id;
+	String sn;
 }
 
 message SCGameStart {
-	long seed;
 }
 
 enum EBoardState {

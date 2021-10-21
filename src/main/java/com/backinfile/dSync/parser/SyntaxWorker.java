@@ -2,9 +2,13 @@ package com.backinfile.dSync.parser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.backinfile.dSync.Log;
 import com.backinfile.dSync.parser.DSyncStruct.DSyncStructType;
 import com.backinfile.dSync.parser.DSyncStruct.DSyncVariable;
 import com.backinfile.dSync.parser.Token.TokenType;
@@ -15,14 +19,14 @@ public class SyntaxWorker {
 	private static final String DS_MSG = "message";
 	private static final String DS_STRUCT = "struct";
 	private static final String DS_ENUM = "enum";
-	private Map<String, DSyncStruct> messageStructMap = new HashMap<>();
-	private List<String> lastComments = new ArrayList<>();
+	private Set<String> messageStructs = new HashSet<>();
+	private List<Token> lastCommentTokens = new ArrayList<>();
 
 	public static class Result {
 		public boolean hasError = false;
 		public String errorStr = "";
 		public Map<String, DSyncStruct> userDefineStructMap = new HashMap<String, DSyncStruct>();
-		public DSyncStruct rootStruct = null;
+		public Set<String> messageStructs = new HashSet<String>();
 	}
 
 	private int index = 0;
@@ -37,6 +41,7 @@ public class SyntaxWorker {
 			worker.tokens.addAll(tokens);
 			worker.parseRoot();
 			result.userDefineStructMap.putAll(worker.getUserDefineStructMap());
+			result.messageStructs.addAll(worker.getMessageStructs());
 		} catch (Exception e) {
 			result.hasError = true;
 			result.errorStr = e.getMessage();
@@ -49,15 +54,27 @@ public class SyntaxWorker {
 		return userDefineStructMap;
 	}
 
+	public Set<String> getMessageStructs() {
+		return messageStructs;
+	}
+
 	private void parseRoot() {
 		// 第一遍，找到所有自定义struct
 		index = 0;
 		while (index < tokens.size()) {
 			if (test(TokenType.Comment)) {
 				var token = match(TokenType.Comment);
-				lastComments.add(token.value);
+				lastCommentTokens.add(token);
+
+				var nextToken = getToken();
+				if (nextToken != null) {
+					if (nextToken.lineno != token.lineno + 1) {
+						lastCommentTokens.clear();
+					}
+				}
 				continue;
 			}
+
 			if (test(TokenType.Name, DS_MSG)) {
 				next();
 				parseStruct(true);
@@ -78,17 +95,21 @@ public class SyntaxWorker {
 		match(TokenType.LBrace);
 		var struct = new DSyncStruct(DSyncStructType.UserDefine);
 		struct.setTypeName(typeName);
-		struct.addComments(lastComments);
-		lastComments.clear();
+		struct.addComments(lastCommentTokens.stream().map(t -> t.value).collect(Collectors.toList()));
+		lastCommentTokens.clear();
 
 		while (!test(TokenType.RBrace)) {
 			parseFiled(struct);
 		}
 		match(TokenType.RBrace);
 
+		if (userDefineStructMap.containsKey(typeName)) {
+			Log.Gen.warn("duplicate struct:{}!", typeName);
+		}
+
 		userDefineStructMap.put(typeName, struct);
 		if (isMsg) {
-			messageStructMap.put(typeName, struct);
+			messageStructs.add(typeName);
 		}
 	}
 
@@ -124,8 +145,8 @@ public class SyntaxWorker {
 		match(TokenType.LBrace);
 		var struct = new DSyncStruct(DSyncStructType.Enum);
 		struct.setTypeName(typeName);
-		struct.addComments(lastComments);
-		lastComments.clear();
+		struct.addComments(lastCommentTokens.stream().map(t -> t.value).collect(Collectors.toList()));
+		lastCommentTokens.clear();
 
 		boolean defaultValue = true;
 		while (!test(TokenType.RBrace)) {

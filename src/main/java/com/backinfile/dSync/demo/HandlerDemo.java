@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.backinfile.dSync.model.DSyncBaseHandler;
 
+// 消息管理器
 public class HandlerDemo extends DSyncBaseHandler {
 	private List<DSyncListener> listeners = new ArrayList<>();
 
@@ -18,24 +19,14 @@ public class HandlerDemo extends DSyncBaseHandler {
 		listeners.remove(listener);
 	}
 	
+	// 消息监听接口
 	public static abstract class DSyncListener {
+
 		public void onMessage(HandlerDemo handler, SCGameStart msg) {
 		}
-		
-		public void onMessage(HandlerDemo handler, DCard msg) {
-		}
-		
-		public void onMessage(HandlerDemo handler, DBoard msg) {
-		}
-		
-		public void onMessage(HandlerDemo handler, DCardPile msg) {
-		}
-		
-		public void onMessage(HandlerDemo handler, DHuman msg) {
-		}
-		
 	}
 	
+	// 接受到消息，解析并派发给监听者
 	public void onMessage(String string) {
 		var jsonObject = JSONObject.parseObject(string);
 		String typeName = jsonObject.getString(DSyncBase.K.TypeName);
@@ -43,26 +34,6 @@ public class HandlerDemo extends DSyncBaseHandler {
 		case SCGameStart.TypeName:
 			for (var listener : listeners) {
 				listener.onMessage(this, SCGameStart.parseJSONObject(jsonObject));
-			}
-			break;
-		case DCard.TypeName:
-			for (var listener : listeners) {
-				listener.onMessage(this, DCard.parseJSONObject(jsonObject));
-			}
-			break;
-		case DBoard.TypeName:
-			for (var listener : listeners) {
-				listener.onMessage(this, DBoard.parseJSONObject(jsonObject));
-			}
-			break;
-		case DCardPile.TypeName:
-			for (var listener : listeners) {
-				listener.onMessage(this, DCardPile.parseJSONObject(jsonObject));
-			}
-			break;
-		case DHuman.TypeName:
-			for (var listener : listeners) {
-				listener.onMessage(this, DHuman.parseJSONObject(jsonObject));
 			}
 			break;
 		}
@@ -106,10 +77,8 @@ public class HandlerDemo extends DSyncBaseHandler {
 	public static class SCGameStart extends DSyncBase {
 		public static final String TypeName = "SCGameStart";
 		
-		private long seed;
 
 		public static class K {
-			public static final String seed = "seed";
 		}
 
 		public SCGameStart() {
@@ -118,15 +87,6 @@ public class HandlerDemo extends DSyncBaseHandler {
 
 		@Override
 		protected void init() {
-			seed = 0;
-		}
-		
-		public long getSeed() {
-			return seed;
-		}
-		
-		public void setSeed(long seed) {
-			this.seed = seed;
 		}
 		
 
@@ -154,12 +114,10 @@ public class HandlerDemo extends DSyncBaseHandler {
 		@Override
 		public void getRecord(JSONObject jsonObject) {
 			jsonObject.put(DSyncBase.K.TypeName, TypeName);
-			jsonObject.put(K.seed, seed);
 		}
 
 		@Override
 		public void applyRecord(JSONObject jsonObject) {
-			seed = jsonObject.getLongValue(K.seed);
 		}
 		
 		@Override
@@ -173,22 +131,16 @@ public class HandlerDemo extends DSyncBaseHandler {
 			if (!(obj instanceof SCGameStart)) {
 				return false;
 			}
-			var _value = (SCGameStart) obj;
-			if (this.seed != _value.seed) {
-				return false;
-			}
 			return true;
 		}
 		
 		public SCGameStart copy() {
 			var _value = new SCGameStart();
-			_value.seed = this.seed;
 			return _value;
 		}
 		
 		public SCGameStart deepCopy() {
 			var _value = new SCGameStart();
-			_value.seed = this.seed;
 			return _value;
 		}
 	}
@@ -197,9 +149,11 @@ public class HandlerDemo extends DSyncBaseHandler {
 		public static final String TypeName = "DCard";
 		
 		private long id;
+		private String sn;
 
 		public static class K {
 			public static final String id = "id";
+			public static final String sn = "sn";
 		}
 
 		public DCard() {
@@ -209,6 +163,7 @@ public class HandlerDemo extends DSyncBaseHandler {
 		@Override
 		protected void init() {
 			id = 0;
+			sn = "";
 		}
 		
 		public long getId() {
@@ -217,6 +172,14 @@ public class HandlerDemo extends DSyncBaseHandler {
 		
 		public void setId(long id) {
 			this.id = id;
+		}
+		
+		public String getSn() {
+			return sn;
+		}
+		
+		public void setSn(String sn) {
+			this.sn = sn;
 		}
 		
 
@@ -245,11 +208,13 @@ public class HandlerDemo extends DSyncBaseHandler {
 		public void getRecord(JSONObject jsonObject) {
 			jsonObject.put(DSyncBase.K.TypeName, TypeName);
 			jsonObject.put(K.id, id);
+			jsonObject.put(K.sn, sn);
 		}
 
 		@Override
 		public void applyRecord(JSONObject jsonObject) {
 			id = jsonObject.getLongValue(K.id);
+			sn = jsonObject.getString(K.sn);
 		}
 		
 		@Override
@@ -267,22 +232,30 @@ public class HandlerDemo extends DSyncBaseHandler {
 			if (this.id != _value.id) {
 				return false;
 			}
+			if (!this.sn.equals(_value.sn)) {
+				return false;
+			}
 			return true;
 		}
 		
 		public DCard copy() {
 			var _value = new DCard();
 			_value.id = this.id;
+			_value.sn = this.sn;
 			return _value;
 		}
 		
 		public DCard deepCopy() {
 			var _value = new DCard();
 			_value.id = this.id;
+			_value.sn = this.sn;
 			return _value;
 		}
 	}
 	
+	/**
+	 * near comment
+	 */
 	public static class DBoard extends DSyncBase {
 		public static final String TypeName = "DBoard";
 		
@@ -312,17 +285,17 @@ public class HandlerDemo extends DSyncBaseHandler {
 			return new ArrayList<>(humans);
 		}
 		
-		public void setHumansList(List<DHuman> _value) {
+		public void setHumansList(List<DHuman> humans) {
 			this.humans.clear();
-			this.humans.addAll(_value);
+			this.humans.addAll(humans);
 		}
 
-		public void addHumans(DHuman _value) {
-			this.humans.add(_value);
+		public void addHumans(DHuman humans) {
+			this.humans.add(humans);
 		}
 		
-		public void addAllHumans(List<DHuman> _value) {
-			this.humans.addAll(_value);
+		public void addAllHumans(List<DHuman> humans) {
+			this.humans.addAll(humans);
 		}
 		
 		public void clearHumans() {
@@ -441,17 +414,17 @@ public class HandlerDemo extends DSyncBaseHandler {
 			return new ArrayList<>(cards);
 		}
 		
-		public void setCardsList(List<DCard> _value) {
+		public void setCardsList(List<DCard> cards) {
 			this.cards.clear();
-			this.cards.addAll(_value);
+			this.cards.addAll(cards);
 		}
 
-		public void addCards(DCard _value) {
-			this.cards.add(_value);
+		public void addCards(DCard cards) {
+			this.cards.add(cards);
 		}
 		
-		public void addAllCards(List<DCard> _value) {
-			this.cards.addAll(_value);
+		public void addAllCards(List<DCard> cards) {
+			this.cards.addAll(cards);
 		}
 		
 		public void clearCards() {
@@ -530,17 +503,16 @@ public class HandlerDemo extends DSyncBaseHandler {
 	}
 	
 	/**
-	 * comment test1
-	 * comment test2
+	 * comment test
 	 */
 	public static class DHuman extends DSyncBase {
 		public static final String TypeName = "DHuman";
 		
 		private List<Long> id;
 		private double percent;
+		/** field comment */
 		private List<Double> percents;
 		private String name;
-		/** field comment */
 		private DCardPile handPile;
 		private List<String> cards;
 
@@ -575,17 +547,17 @@ public class HandlerDemo extends DSyncBaseHandler {
 			return new ArrayList<>(id);
 		}
 		
-		public void setIdList(List<Long> _value) {
+		public void setIdList(List<Long> id) {
 			this.id.clear();
-			this.id.addAll(_value);
+			this.id.addAll(id);
 		}
 
-		public void addId(long _value) {
-			this.id.add(_value);
+		public void addId(long id) {
+			this.id.add(id);
 		}
 		
-		public void addAllId(List<Long> _value) {
-			this.id.addAll(_value);
+		public void addAllId(List<Long> id) {
+			this.id.addAll(id);
 		}
 		
 		public void clearId() {
@@ -600,27 +572,33 @@ public class HandlerDemo extends DSyncBaseHandler {
 			this.percent = percent;
 		}
 		
+		/** field comment */
 		public int getPercentsCount() {
 			return this.percents.size();
 		}
 		
+		/** field comment */
 		public List<Double> getPercentsList() {
 			return new ArrayList<>(percents);
 		}
 		
-		public void setPercentsList(List<Double> _value) {
+		/** field comment */
+		public void setPercentsList(List<Double> percents) {
 			this.percents.clear();
-			this.percents.addAll(_value);
+			this.percents.addAll(percents);
 		}
 
-		public void addPercents(double _value) {
-			this.percents.add(_value);
+		/** field comment */
+		public void addPercents(double percents) {
+			this.percents.add(percents);
 		}
 		
-		public void addAllPercents(List<Double> _value) {
-			this.percents.addAll(_value);
+		/** field comment */
+		public void addAllPercents(List<Double> percents) {
+			this.percents.addAll(percents);
 		}
 		
+		/** field comment */
 		public void clearPercents() {
 			this.percents.clear();
 		}
@@ -633,12 +611,10 @@ public class HandlerDemo extends DSyncBaseHandler {
 			this.name = name;
 		}
 		
-		/** field comment */
 		public DCardPile getHandPile() {
 			return handPile;
 		}
 		
-		/** field comment */
 		public void setHandPile(DCardPile handPile) {
 			this.handPile = handPile;
 		}
@@ -651,17 +627,17 @@ public class HandlerDemo extends DSyncBaseHandler {
 			return new ArrayList<>(cards);
 		}
 		
-		public void setCardsList(List<String> _value) {
+		public void setCardsList(List<String> cards) {
 			this.cards.clear();
-			this.cards.addAll(_value);
+			this.cards.addAll(cards);
 		}
 
-		public void addCards(String _value) {
-			this.cards.add(_value);
+		public void addCards(String cards) {
+			this.cards.add(cards);
 		}
 		
-		public void addAllCards(List<String> _value) {
-			this.cards.addAll(_value);
+		public void addAllCards(List<String> cards) {
+			this.cards.addAll(cards);
 		}
 		
 		public void clearCards() {
