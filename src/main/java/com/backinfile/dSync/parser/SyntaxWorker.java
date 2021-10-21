@@ -214,18 +214,4 @@ public class SyntaxWorker {
 		index++;
 		return token;
 	}
-
-	private Token match(TokenType tokenType, String name) {
-		if (index >= tokens.size()) {
-			var token = tokens.get(tokens.size() - 1);
-			throw new ParserError("语法错误 不能匹配" + tokenType.name() + " 第" + token.lineno + "行。");
-		}
-		var token = tokens.get(index);
-		if (token.type != tokenType || !token.value.equals(name)) {
-			throw new ParserError("语法错误 不能匹配" + tokenType.name() + " 第" + token.lineno + "行。");
-		}
-		index++;
-		return token;
-	}
-
 }
