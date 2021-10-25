@@ -34,7 +34,7 @@ public class FreeMarkerManager {
 		try {
 			var config = new Configuration(Configuration.VERSION_2_3_22);
 			config.setDefaultEncoding("UTF-8");
-			config.setClassForTemplateLoading(FreeMarkerManager.class, ".");
+			config.setClassForTemplateLoading(FreeMarkerManager.class, "");
 			config.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 
 			var file = new File(outPath, outFileName);

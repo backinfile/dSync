@@ -2,7 +2,6 @@ package com.backinfile.dSync.gen;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import com.backinfile.dSync.Log;
 import com.backinfile.dSync.model.DSyncException;
 import com.backinfile.dSync.parser.SyntaxWorker;
 import com.backinfile.dSync.parser.TokenWorker;
@@ -18,24 +16,24 @@ import com.backinfile.dSync.parser.DSyncStruct.DSyncStructType;
 import com.backinfile.dSync.parser.SyntaxWorker.Result;
 
 public class DSyncGenerator {
-	private String filePath = DSyncGenerator.class.getClassLoader().getResource("").getPath();
 	private String fileName = "dSync.ftl";
 	private String outPackagePath = "com.backinfile.dSync.demo";
 	private String outFilePath = "src\\main\\java\\com\\backinfile\\dSync\\demo";
 	private String outClassName = "HandlerDemo";
-	private String dsSourceFileName = "demo.ds";
+	private String dsSourceFilePath = "";
 	private String dsSource = "";
 
 	public static void main(String[] args) {
 		System.setProperty("log4j.configurationFile", "resources/log4j2.xml");
-		if (args.length != 3) {
-			System.out.println("usage: java -jar dSync.jar outPackagePath outFilePath outClassName");
+		if (args.length != 4) {
+			System.out.println("usage: java -jar dSync.jar outPackagePath outFilePath outClassName dsPath");
 			return;
 		}
 		var generator = new DSyncGenerator();
 		generator.outPackagePath = args[0];
 		generator.outFilePath = args[1];
 		generator.outClassName = args[2];
+		generator.dsSourceFilePath = args[3];
 		generator.genFile();
 	}
 
@@ -45,11 +43,8 @@ public class DSyncGenerator {
 	}
 
 	private String getDSSource() {
-		String resourcePath = TokenWorker.class.getClassLoader().getResource(dsSourceFileName).getPath();
 		try {
-			Path path = Paths.get(resourcePath);
-			Log.Gen.info("resourcePath = {}", resourcePath);
-			List<String> lines = Files.readAllLines(path);
+			List<String> lines = Files.readAllLines(Paths.get(dsSourceFilePath));
 			var sj = new StringJoiner("\n");
 			for (var line : lines) {
 				sj.add(line);
@@ -146,7 +141,7 @@ public class DSyncGenerator {
 			}
 		}
 
-		FreeMarkerManager.formatFile(filePath, fileName, rootMap, outFilePath, outClassName + ".java");
+		FreeMarkerManager.formatFile(fileName, rootMap, outFilePath, outClassName + ".java");
 	}
 
 }
