@@ -16,7 +16,8 @@ import com.backinfile.dSync.parser.DSyncStruct.DSyncStructType;
 import com.backinfile.dSync.parser.SyntaxWorker.Result;
 
 public class DSyncGenerator {
-	private String fileName = "dSync.ftl";
+	private String templatePath;
+	private String templateName;
 	private String outPackagePath = "com.backinfile.dSync.demo";
 	private String outFilePath = "src\\main\\java\\com\\backinfile\\dSync\\demo";
 	private String outClassName = "HandlerDemo";
@@ -25,8 +26,8 @@ public class DSyncGenerator {
 
 	public static void main(String[] args) {
 		System.setProperty("log4j.configurationFile", "resources/log4j2.xml");
-		if (args.length != 4) {
-			System.out.println("usage: java -jar dSync.jar outPackagePath outFilePath outClassName dsPath");
+		if (args.length != 6) {
+			System.out.println("usage: java -jar dSync.jar outPackagePath outFilePath outClassName dsPath templatePath templateName");
 			return;
 		}
 		var generator = new DSyncGenerator();
@@ -34,6 +35,8 @@ public class DSyncGenerator {
 		generator.outFilePath = args[1];
 		generator.outClassName = args[2];
 		generator.dsSourceFilePath = args[3];
+		generator.templatePath = args[4];
+		generator.templateName = args[5];
 		generator.genFile();
 	}
 
@@ -141,7 +144,7 @@ public class DSyncGenerator {
 			}
 		}
 
-		FreeMarkerManager.formatFile(fileName, rootMap, outFilePath, outClassName + ".java");
+		FreeMarkerManager.formatFile(templatePath, templateName, rootMap, outFilePath, outClassName + ".java");
 	}
 
 }

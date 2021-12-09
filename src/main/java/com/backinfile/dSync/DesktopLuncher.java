@@ -65,15 +65,15 @@ public class DesktopLuncher {
 
 			Label genLabel = new Label();
 			Button genButton = new Button("generator");
-			genButton.setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(ActionEvent event) {
-					try {
-						dialog
-					} catch (Exception e) {
-					}
-				}
-			});
+//			genButton.setOnAction(new EventHandler<ActionEvent>() {
+//				@Override
+//				public void handle(ActionEvent event) {
+//					try {
+//						dialog
+//					} catch (Exception e) {
+//					}
+//				}
+//			});
 
 			Label headLabel = new Label("DSync Generator");
 			headLabel.setFont(Font.font(20));
@@ -95,7 +95,7 @@ public class DesktopLuncher {
 			gridPane.add(dsSourceFilePath, 1, 4);
 			gridPane.add(fileSelectBtn, 2, 4);
 
-			gridPane.add(child, columnIndex, rowIndex);
+//			gridPane.add(child, columnIndex, rowIndex);
 
 			root.setCenter(gridPane);
 			gridPane.prefWidthProperty().bind(root.widthProperty());

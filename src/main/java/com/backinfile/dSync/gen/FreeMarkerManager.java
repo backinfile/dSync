@@ -1,7 +1,12 @@
 package com.backinfile.dSync.gen;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 import com.backinfile.dSync.Log;
@@ -20,8 +25,8 @@ public class FreeMarkerManager {
 
 			var file = new File(outPath, outFileName);
 			file.getParentFile().mkdirs();
-			try (FileWriter writer = new FileWriter(file)) {
-				var template = config.getTemplate(fileName);
+			try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")) {
+				var template = config.getTemplate(fileName, "UTF-8");
 				template.process(rootMap, writer);
 			}
 			Log.Gen.info("gen {} success", file.getPath());
@@ -39,8 +44,8 @@ public class FreeMarkerManager {
 
 			var file = new File(outPath, outFileName);
 			file.getParentFile().mkdirs();
-			try (FileWriter writer = new FileWriter(file)) {
-				var template = config.getTemplate(fileName);
+			try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"))) {
+				var template = config.getTemplate(fileName, "UTF-8");
 				template.process(rootMap, writer);
 			}
 			Log.Gen.info("gen {} success", file.getPath());
